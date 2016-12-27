@@ -1,5 +1,7 @@
 #!/usr/bin/env python2.7
-"""Script for downloading Seinfeld scripts."""
+"""Script for downloading Seinfeld scripts.
+Source: https://github.com/colinpollock/seinfeld-scripts
+"""
 
 from __future__ import division
 import argparse

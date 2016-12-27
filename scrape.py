@@ -1,4 +1,7 @@
 #!/usr/bin/env python2.7
+"""
+Source: https://github.com/colinpollock/seinfeld-scripts
+"""
 
 
 import re
@@ -43,8 +46,8 @@ def parse_episode_info(html):
     writers = tuple([w.strip() for w in re.split(r',|&amp;', writers) if w])
     director = re.search(r'Directed [bB]y (.*?)<', html).groups()[0]
 
-    return {'season_num': season_num, 'episode_num': episode_num, 
-            'title': title, 'date': date, 'writers': writers, 
+    return {'season_num': season_num, 'episode_num': episode_num,
+            'title': title, 'date': date, 'writers': writers,
             'director': director}
 
 
