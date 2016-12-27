@@ -1,0 +1,5 @@
+.*.swp
+.ropeproject/
+scripts/
+seinfeld-scripts/
+seinfeld_lstm_corpus.txt
