@@ -90,13 +90,15 @@ Y = np.zeros((BATCH_SIZE, len(char_indices)), dtype=np.bool)
 print('Build model...')
 model = Sequential()
 model.add(LSTM(
-    128 * 2,
+    128 * 3,
     batch_input_shape=(BATCH_SIZE, 1, len(char_indices)),
     stateful=True
+    # dropout_W=0.2,
+    # dropout_U=0.2,
 ))
 model.add(Dense(len(char_indices)))
 model.add(Activation('softmax'))
-model.compile(loss='categorical_crossentropy', optimizer=RMSprop(lr=0.01))
+model.compile(loss='categorical_crossentropy', optimizer=RMSprop(lr=0.005))
 
 
 def sample(preds, temperature=1.0):
@@ -110,7 +112,7 @@ def sample(preds, temperature=1.0):
     return np.argmax(probas)
 
 # train the model, output generated text after each iteration
-for iteration in range(1, 60):
+for iteration in range(1, 30):
     print()
     print('-' * 50)
     print('Iteration', iteration)
