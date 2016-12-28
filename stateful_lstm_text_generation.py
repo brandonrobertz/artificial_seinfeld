@@ -100,6 +100,7 @@ model.compile(loss='categorical_crossentropy', optimizer=RMSprop(lr=0.01))
 
 
 def sample(preds, temperature=1.0):
+    # print("preds", preds, "temp", temperature)
     # helper function to sample an index from a probability array
     preds = np.asarray(preds).astype('float64')
     preds = np.log(preds) / temperature
@@ -178,3 +179,5 @@ for iteration in range(1, 60):
         print("diversity:", diversities[k])
         print(generated[k][1:])
         print()
+
+model.save("lstm_model.h5")

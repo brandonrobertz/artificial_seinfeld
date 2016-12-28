@@ -2,4 +2,6 @@
 .ropeproject/
 scripts/
 seinfeld-scripts/
-seinfeld_lstm_corpus.txt
+seinfeld_*_corpus.*
+char-models
+*.h5

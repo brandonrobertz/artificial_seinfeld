@@ -8,7 +8,6 @@ import re
 import sys
 
 
-
 def unescape(s):
     """Replace HTML jibberish with normal symbols."""
     s = s.replace("&lt;", "<")
@@ -22,7 +21,6 @@ def unescape(s):
 
     s = s.replace("&quot;", "'")
     s = s.replace("&#133;", "...")
-
 
     # this has to be last:
     s = s.replace("&amp;", "&")
@@ -65,7 +63,6 @@ def parse_script(html):
         yield (speaker, unescape(utterance_text))
 
 
-
 def scrape_episode(html):
     html = html.replace('&nbsp;', ' ')
     splitted = re.split(r'={30}.*', html)
@@ -76,26 +73,45 @@ def scrape_episode(html):
     utterances = parse_script(script_html)
     return (info, utterances)
 
-strip = r"\.\.\.|\.\.|\s'|'\s|\"|\(.*[\)\'\:]|\n|\r"
+
+def usage():
+    print "USAGE: scrape.py [-m jerry|all] script.shtml"
+    sys.exit(1)
+
+strip = r"\.\.\.|\.\.|\s'|'\s|\"|\(.*[\)\'\:]|\n|\r|\d|\*.*\*"
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print "USAGE: scrape.py script.shtml"
-        sys.exit(1)
-    with open(sys.argv[1]) as file:
+    mode = "jerry"
+    path = None
+    if len(sys.argv) < 2:
+        usage()
+    elif len(sys.argv) == 2:
+        path = sys.argv[1]
+    elif len(sys.argv) == 4:
+        path = sys.argv[3]
+        mode = sys.argv[2]
+    if mode not in ["jerry", "all"]:
+        usage()
+    with open(path) as file:
         info, utterances = scrape_episode(file.read())
         last_line = None
         for utterance in utterances:
-            speaker = utterance[0]
-            line = re.sub( "\s{2,}", " ", re.sub( strip, " ", utterance[1])).lower()
-            if last_line is None:
+            speaker = utterance[0].lower()
+            line = re.sub(
+                "\s{2,}",
+                " ",
+                re.sub(strip, " ", utterance[1])
+            ).lower()
+            if mode == "jerry":
+                if last_line is None:
+                    last_line = line
+                    continue
+                if speaker == 'jerry' \
+                        and len(line) < 150 \
+                        and len(last_line) < 150:
+                    print("{0}<q>{1}<a>".format(
+                        last_line, line
+                    ))
                 last_line = line
-                continue
-            if speaker.lower() == 'jerry' \
-                    and len(line) < 150 \
-                    and len(last_line) < 150:
-                print("{0}<Q>{1}<A>".format(
-                    last_line, line
-                ))
-            last_line = line
-
+            elif mode == "all":
+                print line
