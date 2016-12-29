@@ -33,12 +33,13 @@ BOS = '$'
 # End Of SEQuence
 EOSEQ = "$$$"
 
-BATCH_SIZE = 128 * 20
-LEARNING_RATE = 0.03
-LSTM_SIZE = 300
+BATCH_SIZE = 128 * 50
+LEARNING_RATE = 0.07
+LSTM_SIZE = 900
 # tried 0.8, got consistently lower results per-epoch, but seemed that
 # maybe it had more room to go lower
 LEARNING_RATE_DECAY = 0.9
+EPOCHS=60
 
 # eliminate pep8 error
 print(RMSprop)
@@ -127,8 +128,16 @@ def sample(preds, temperature=1.0):
     probas = np.random.multinomial(1, preds, 1)
     return np.argmax(probas)
 
+
+
+print('BATCH_SIZE',BATCH_SIZE)
+print('LEARNING_RATE',LEARNING_RATE)
+print('LSTM_SIZE',LSTM_SIZE)
+print('LEARNING_RATE_DECAY',LEARNING_RATE_DECAY)
+
+
 # train the model, output generated text after each iteration
-for iteration in range(1, 10):
+for iteration in range(1, EPOCHS):
     print()
     print('-' * 50)
     print('Iteration', iteration)
