@@ -5,3 +5,4 @@ seinfeld-scripts/
 seinfeld_*_corpus.*
 char-models
 *.h5
+jerry_data

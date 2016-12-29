@@ -20,9 +20,10 @@ from __future__ import print_function
 from keras.models import Sequential
 from keras.layers import Dense, Activation  # , Dropout
 from keras.layers import LSTM
-from keras.optimizers import RMSprop
+from keras.optimizers import RMSprop, Adam
 # from keras.utils.data_utils import get_file
 from keras.utils import generic_utils
+import keras.backend as K
 import numpy as np
 import random
 import sys
@@ -32,7 +33,15 @@ BOS = '$'
 # End Of SEQuence
 EOSEQ = "$$$"
 
-BATCH_SIZE = 128
+BATCH_SIZE = 128 * 20
+LEARNING_RATE = 0.03
+LSTM_SIZE = 300
+# tried 0.8, got consistently lower results per-epoch, but seemed that
+# maybe it had more room to go lower
+LEARNING_RATE_DECAY = 0.9
+
+# eliminate pep8 error
+print(RMSprop)
 
 
 # Generators return EOS to indicate end of generation
@@ -75,7 +84,8 @@ if len(sys.argv) < 2:
 path = sys.argv[1]
 print("Using corpus {0}".format(path))
 text = open(path).read()
-lines = text.split("\n")
+rawlines = text.split("\n")
+lines = filter(lambda x: x, map(lambda x: x.strip(), rawlines))
 
 char_indices, indices_char, training_sentences = get_char_dict(lines)
 
@@ -90,32 +100,39 @@ Y = np.zeros((BATCH_SIZE, len(char_indices)), dtype=np.bool)
 print('Build model...')
 model = Sequential()
 model.add(LSTM(
-    128 * 3,
+    # 128 * 4,
+    LSTM_SIZE,
     batch_input_shape=(BATCH_SIZE, 1, len(char_indices)),
     stateful=True
+    # ,
     # dropout_W=0.2,
     # dropout_U=0.2,
 ))
 model.add(Dense(len(char_indices)))
 model.add(Activation('softmax'))
-model.compile(loss='categorical_crossentropy', optimizer=RMSprop(lr=0.005))
+model.compile(
+    loss='categorical_crossentropy',
+    optimizer=Adam(lr=LEARNING_RATE)
+)
 
 
 def sample(preds, temperature=1.0):
     # print("preds", preds, "temp", temperature)
     # helper function to sample an index from a probability array
     preds = np.asarray(preds).astype('float64')
-    preds = np.log(preds) / temperature
+    preds = np.log(preds*0.99) / temperature
     exp_preds = np.exp(preds)
+    print("exp_preds", exp_preds)
     preds = exp_preds / np.sum(exp_preds)
     probas = np.random.multinomial(1, preds, 1)
     return np.argmax(probas)
 
 # train the model, output generated text after each iteration
-for iteration in range(1, 30):
+for iteration in range(1, 10):
     print()
     print('-' * 50)
     print('Iteration', iteration)
+    print('Learning Rate', LEARNING_RATE)
     processed_sentences = 0
     progbar = generic_utils.Progbar(training_sentences)
 
@@ -164,22 +181,25 @@ for iteration in range(1, 30):
     diversities = [0.2, 0.5, 1.0, 1.2]
     generated = len(diversities) * [BOS]
 
-    for i in range(400):
-        X.fill(0)
-        for k in range(len(diversities)):
-            X[k, 0, char_indices[generated[k][-1]]] = 1.
+    # for i in range(400):
+    #     X.fill(0)
+    #     for k in range(len(diversities)):
+    #         X[k, 0, char_indices[generated[k][-1]]] = 1.
+    #
+    #     preds = model.predict(X, batch_size=BATCH_SIZE, verbose=0)
+    #
+    #     for k in range(len(diversities)):
+    #         next_index = sample(preds[k], diversities[k])
+    #         char = indices_char[next_index]
+    #         generated[k] += char
+    #
+    # for k in range(len(diversities)):
+    #     print()
+    #     print("diversity:", diversities[k])
+    #     print(generated[k][1:])
+    #     print()
 
-        preds = model.predict(X, batch_size=BATCH_SIZE, verbose=0)
-
-        for k in range(len(diversities)):
-            next_index = sample(preds[k], diversities[k])
-            char = indices_char[next_index]
-            generated[k] += char
-
-    for k in range(len(diversities)):
-        print()
-        print("diversity:", diversities[k])
-        print(generated[k][1:])
-        print()
+    LEARNING_RATE *= LEARNING_RATE_DECAY
+    K.set_value(model.optimizer.lr, LEARNING_RATE)
 
 model.save("lstm_model.h5")
