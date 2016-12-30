@@ -78,7 +78,7 @@ def usage():
     print "USAGE: scrape.py [-m jerry|all] script.shtml"
     sys.exit(1)
 
-strip = r"\.\.\.|\.\.|\s'|'\s|\"|\(.*[\)\'\:]|\n|\r|\d|\*.*\*"
+strip = r"\.\.\.|\.\.|\s'|'\s|\"|\(.*[\)\'\:]|\n|\r|\d|\*.*\*|[^a-z\.\?\! ]"
 
 if __name__ == "__main__":
     mode = "jerry"
@@ -108,9 +108,11 @@ if __name__ == "__main__":
                     continue
                 if speaker == 'jerry' \
                         and len(line) < 150 \
-                        and len(last_line) < 150:
+                        and len(line) > 15 \
+                        and len(last_line) < 150 \
+                        and len(last_line) > 15:
                     print("{0}<q>{1}<a>".format(
-                        last_line, line
+                        last_line.lower(), line.lower()
                     ))
                 last_line = line
             elif mode == "all":
