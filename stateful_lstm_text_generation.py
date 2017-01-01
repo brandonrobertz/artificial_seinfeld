@@ -33,7 +33,7 @@ BOS = '$'
 # End Of SEQuence
 EOSEQ = "$$$"
 
-BATCH_SIZE = 128 * 50
+BATCH_SIZE = 128 * 25  # * 50
 LEARNING_RATE = 0.07
 LSTM_SIZE = 900
 # tried 0.8, got consistently lower results per-epoch, but seemed that
@@ -86,9 +86,14 @@ path = sys.argv[1]
 print("Using corpus {0}".format(path))
 text = open(path).read()
 rawlines = text.split("\n")
-lines = filter(lambda x: x, map(lambda x: x.strip(), rawlines))
+lines = filter(
+    lambda x: x,
+    map(lambda x: x.replace(
+        r'[0-9]', ' '
+            ).strip(), rawlines))
 
 char_indices, indices_char, training_sentences = get_char_dict(lines)
+print("chars", char_indices)
 
 print('total chars:', len(char_indices))
 print('total sentences:', training_sentences)
@@ -129,7 +134,7 @@ def sample(preds, temperature=1.0):
     return np.argmax(probas)
 
 
-
+print('-' * 50)
 print('BATCH_SIZE',BATCH_SIZE)
 print('LEARNING_RATE',LEARNING_RATE)
 print('LSTM_SIZE',LSTM_SIZE)
@@ -138,7 +143,6 @@ print('LEARNING_RATE_DECAY',LEARNING_RATE_DECAY)
 
 # train the model, output generated text after each iteration
 for iteration in range(1, EPOCHS):
-    print()
     print('-' * 50)
     print('Iteration', iteration)
     print('Learning Rate', LEARNING_RATE)

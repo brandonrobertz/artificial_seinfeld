@@ -25,8 +25,8 @@ import json
 
 LSTM_SIZE = 200
 EPOCHS = 1
-BATCH_SIZE = 300 #128 + 350
-LEARNING_RATE = 0.5
+BATCH_SIZE = 200
+LEARNING_RATE = 0.01
 DROPOUT = 0.1
 
 TEXT_STEP = 1
@@ -42,7 +42,6 @@ print('EPOCHS',EPOCHS)
 print('BATCH_SIZE',BATCH_SIZE)
 print('TEXT_STEP',TEXT_STEP)
 print('LEARNING_RATE',LEARNING_RATE)
-print('MAXLEN',MAXLEN)
 
 
 def vectorize(text, chars, char_indices, indices_char):
@@ -87,6 +86,7 @@ def load_corpus(path):
     # here is where we set global MAXLEN
     global MAXLEN
     MAXLEN = max(map(lambda x: len(x), text.split('<a>')))
+    print('MAXLEN',MAXLEN)
 
     chars = sorted(list(set(text)))
     print('total chars:', len(chars))
@@ -119,6 +119,7 @@ def build_model(chars):
         dropout_U=DROPOUT
     ))
     model.add(Dense(len(chars)))
+    # other options include relu
     model.add(Activation('softmax'))
     optimizer = RMSprop(lr=LEARNING_RATE)
     model.compile(loss='categorical_crossentropy', optimizer=optimizer)
@@ -169,6 +170,7 @@ def save_model(model):
     model.save('lstm_window_model.h5')
     with open('lstm_window_char_indices.json','w') as f:
         f.write(json.dumps(char_indices))
+
 
 if __name__ == "__main__":
     # if len(sys.argv) < 2:

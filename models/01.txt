@@ -1,0 +1,132 @@
+$ ipython lstm_text_generation.py
+Using TensorFlow backend.
+I tensorflow/stream_executor/dso_loader.cc:125] successfully opened CUDA library libcublas.so.7.5 locally
+I tensorflow/stream_executor/dso_loader.cc:125] successfully opened CUDA library libcudnn.so.5 locally
+I tensorflow/stream_executor/dso_loader.cc:125] successfully opened CUDA library libcufft.so.7.5 locally
+I tensorflow/stream_executor/dso_loader.cc:125] successfully opened CUDA library libcuda.so.1 locally
+I tensorflow/stream_executor/dso_loader.cc:125] successfully opened CUDA library libcurand.so.7.5 locally
+W tensorflow/core/platform/cpu_feature_guard.cc:95] The TensorFlow library wasn't compiled to use SSE4.2 instructions, but these are available on your machine and could speed up CPU computations.
+corpus length: 801732
+total chars: 34
+nb sequences: 267149
+LSTM_SIZE 200
+EPOCHS 2
+BATCH_SIZE 128
+TEXT_STEP 3
+LEARNING_RATE 0.05
+Vectorization...
+Build model...
+WARNING:tensorflow:From /home/brando/.virtualenvs/seinfeld/local/lib/python2.7/site-packages/keras/backend/tensorflow_backend.py:1778: unpack (from tensorflow.python.ops.tensor_array_ops) is deprecated and will be removed after 2016-12-12.
+Instructions for updating:
+This op will be removed after the deprecation date. Please switch to tf.unstack.
+WARNING:tensorflow:From /home/brando/.virtualenvs/seinfeld/local/lib/python2.7/site-packages/keras/backend/tensorflow_backend.py:1833: pack (from tensorflow.python.ops.tensor_array_ops) is deprecated and will be removed after 2016-12-12.
+Instructions for updating:
+This op will be removed after the deprecation date. Please switch to tf.stack.
+Epoch 1/2
+I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:910] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:885] Found device 0 with properties:
+name: GeForce GTX 650
+major: 3 minor: 0 memoryClockRate (GHz) 1.0585
+pciBusID 0000:01:00.0
+Total memory: 2.00GiB
+Free memory: 1.67GiB
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:906] DMA: 0
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:916] 0:   Y
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:975] Creating TensorFlow device (/gpu:0) -> (device: 0, name: GeForce GTX 650, pci bus id: 0000:01:00.0)
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 15134 get requests, put_count=4386 evicted_count=1000 eviction_rate=0.227998 and unsatisfied allocation rate=0.782873
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:259] Raising pool_size_limit_ from 100 to 110
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 7332 get requests, put_count=17342 evicted_count=10000 eviction_rate=0.576635 and unsatisfied allocation rate=0
+   128/267149 [..............................] - ETA: 5270s - loss: 3.5276I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 6809 get requests, put_count=15820 evicted_count=9000 eviction_rate=0.5689 and unsatisfied allocation rate=0
+   256/267149 [..............................] - ETA: 3925s - loss: 4.9854I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 5301 get requests, put_count=12313 evicted_count=7000 eviction_rate=0.568505 and unsatisfied allocation rate=0
+   384/267149 [..............................] - ETA: 3477s - loss: 5.3112I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 3791 get requests, put_count=8804 evicted_count=5000 eviction_rate=0.567924 and unsatisfied allocation rate=0
+   512/267149 [..............................] - ETA: 3250s - loss: 6.1731I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 3024 get requests, put_count=7038 evicted_count=4000 eviction_rate=0.568343 and unsatisfied allocation rate=0
+   640/267149 [..............................] - ETA: 3112s - loss: 6.9159I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 1527 get requests, put_count=3543 evicted_count=2000 eviction_rate=0.564493 and unsatisfied allocation rate=0
+   768/267149 [..............................] - ETA: 3025s - loss: 6.8498I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 22945 get requests, put_count=23292 evicted_count=12000 eviction_rate=0.515198 and unsatisfied allocation rate=0.508564
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:259] Raising pool_size_limit_ from 176 to 193
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 7400 get requests, put_count=17417 evicted_count=10000 eviction_rate=0.574152 and unsatisfied allocation rate=0
+   896/267149 [..............................] - ETA: 2959s - loss: 6.7443I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 6818 get requests, put_count=15837 evicted_count=9000 eviction_rate=0.568289 and unsatisfied allocation rate=0
+  1024/267149 [..............................] - ETA: 2909s - loss: 6.5189I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 5302 get requests, put_count=12323 evicted_count=7000 eviction_rate=0.568043 and unsatisfied allocation rate=0
+  1152/267149 [..............................] - ETA: 2871s - loss: 6.2887I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 3797 get requests, put_count=8820 evicted_count=5000 eviction_rate=0.566893 and unsatisfied allocation rate=0
+  1280/267149 [..............................] - ETA: 2841s - loss: 6.2536I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 3038 get requests, put_count=7063 evicted_count=4000 eviction_rate=0.566332 and unsatisfied allocation rate=0
+  1408/267149 [..............................] - ETA: 2816s - loss: 6.1600I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 1545 get requests, put_count=3573 evicted_count=2000 eviction_rate=0.559754 and unsatisfied allocation rate=0
+  1536/267149 [..............................] - ETA: 2795s - loss: 6.2090I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 776 get requests, put_count=1806 evicted_count=1000 eviction_rate=0.55371 and unsatisfied allocation rate=0
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 7936 get requests, put_count=18966 evicted_count=11000 eviction_rate=0.579985 and unsatisfied allocation rate=0
+  1664/267149 [..............................] - ETA: 2776s - loss: 6.2710I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 6823 get requests, put_count=15856 evicted_count=9000 eviction_rate=0.567608 and unsatisfied allocation rate=0
+  1792/267149 [..............................] - ETA: 2760s - loss: 6.3200I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 6076 get requests, put_count=14113 evicted_count=8000 eviction_rate=0.566853 and unsatisfied allocation rate=0
+  1920/267149 [..............................] - ETA: 2746s - loss: 6.2559I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 4560 get requests, put_count=10600 evicted_count=6000 eviction_rate=0.566038 and unsatisfied allocation rate=0
+  2048/267149 [..............................] - ETA: 2734s - loss: 6.1786I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 3814 get requests, put_count=8858 evicted_count=5000 eviction_rate=0.564462 and unsatisfied allocation rate=0
+  2176/267149 [..............................] - ETA: 2723s - loss: 6.0628I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 3046 get requests, put_count=7095 evicted_count=4000 eviction_rate=0.563777 and unsatisfied allocation rate=0
+  2304/267149 [..............................] - ETA: 2712s - loss: 5.9636I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 1553 get requests, put_count=3607 evicted_count=2000 eviction_rate=0.554477 and unsatisfied allocation rate=0
+  2432/267149 [..............................] - ETA: 2703s - loss: 5.8937I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 806 get requests, put_count=1865 evicted_count=1000 eviction_rate=0.536193 and unsatisfied allocation rate=0
+  2560/267149 [..............................] - ETA: 2695s - loss: 5.8500I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 22590 get requests, put_count=22462 evicted_count=11000 eviction_rate=0.489716 and unsatisfied allocation rate=0.495219
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:259] Raising pool_size_limit_ from 655 to 720
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 7414 get requests, put_count=17479 evicted_count=10000 eviction_rate=0.572115 and unsatisfied allocation rate=0
+  2688/267149 [..............................] - ETA: 2687s - loss: 5.7672I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 6862 get requests, put_count=15934 evicted_count=9000 eviction_rate=0.56483 and unsatisfied allocation rate=0
+  2816/267149 [..............................] - ETA: 2680s - loss: 5.7068I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 6107 get requests, put_count=14186 evicted_count=8000 eviction_rate=0.563936 and unsatisfied allocation rate=0
+  2944/267149 [..............................] - ETA: 2674s - loss: 5.6279I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 5348 get requests, put_count=12435 evicted_count=7000 eviction_rate=0.562927 and unsatisfied allocation rate=0
+  3072/267149 [..............................] - ETA: 2668s - loss: 5.5561I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 4618 get requests, put_count=10713 evicted_count=6000 eviction_rate=0.560067 and unsatisfied allocation rate=0
+  3200/267149 [..............................] - ETA: 2662s - loss: 5.5009I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 3851 get requests, put_count=8956 evicted_count=5000 eviction_rate=0.558285 and unsatisfied allocation rate=0
+  3328/267149 [..............................] - ETA: 2657s - loss: 5.4669I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 3101 get requests, put_count=7216 evicted_count=4000 eviction_rate=0.554324 and unsatisfied allocation rate=0
+  3456/267149 [..............................] - ETA: 2653s - loss: 5.4302I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 3127 get requests, put_count=7254 evicted_count=4000 eviction_rate=0.55142 and unsatisfied allocation rate=0
+  3584/267149 [..............................] - ETA: 2648s - loss: 5.3921I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 2370 get requests, put_count=5510 evicted_count=3000 eviction_rate=0.544465 and unsatisfied allocation rate=0
+  3712/267149 [..............................] - ETA: 2643s - loss: 5.3672I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 2374 get requests, put_count=5528 evicted_count=3000 eviction_rate=0.542692 and unsatisfied allocation rate=0
+  3840/267149 [..............................] - ETA: 2639s - loss: 5.3357I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 2391 get requests, put_count=5560 evicted_count=3000 eviction_rate=0.539568 and unsatisfied allocation rate=0
+  3968/267149 [..............................] - ETA: 2635s - loss: 5.3096I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 2414 get requests, put_count=5600 evicted_count=3000 eviction_rate=0.535714 and unsatisfied allocation rate=0
+  4096/267149 [..............................] - ETA: 2631s - loss: 5.2896I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 2421 get requests, put_count=5625 evicted_count=3000 eviction_rate=0.533333 and unsatisfied allocation rate=0
+  4224/267149 [..............................] - ETA: 2627s - loss: 5.2442I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 2425 get requests, put_count=5650 evicted_count=3000 eviction_rate=0.530973 and unsatisfied allocation rate=0
+  4352/267149 [..............................] - ETA: 2623s - loss: 5.2095I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 3220 get requests, put_count=7467 evicted_count=4000 eviction_rate=0.53569 and unsatisfied allocation rate=0
+  4480/267149 [..............................] - ETA: 2620s - loss: 5.1780I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 3998 get requests, put_count=9270 evicted_count=5000 eviction_rate=0.539374 and unsatisfied allocation rate=0
+  4608/267149 [..............................] - ETA: 2617s - loss: 5.1427I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 4747 get requests, put_count=11046 evicted_count=6000 eviction_rate=0.543183 and unsatisfied allocation rate=0
+  4736/267149 [..............................] - ETA: 2613s - loss: 5.1156I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 5821 get requests, put_count=14150 evicted_count=8000 eviction_rate=0.565371 and unsatisfied allocation rate=0
+  4992/267149 [..............................] - ETA: 2607s - loss: 5.0811I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 1054 get requests, put_count=2452 evicted_count=1000 eviction_rate=0.40783 and unsatisfied allocation rate=0
+  5120/267149 [..............................] - ETA: 2604s - loss: 5.0687I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 3353 get requests, put_count=7791 evicted_count=4000 eviction_rate=0.513413 and unsatisfied allocation rate=0
+  5376/267149 [..............................] - ETA: 2598s - loss: 5.0131I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 23396 get requests, put_count=24340 evicted_count=7000 eviction_rate=0.287592 and unsatisfied allocation rate=0.279449
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:259] Raising pool_size_limit_ from 5305 to 5835
+  5504/267149 [..............................] - ETA: 2595s - loss: 4.9886I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 3116 get requests, put_count=7699 evicted_count=4000 eviction_rate=0.519548 and unsatisfied allocation rate=0
+  5888/267149 [..............................] - ETA: 2587s - loss: 4.9516I tensorflow/core/common_runtime/gpu/pool_allocator.cc:247] PoolAllocator: After 23171 get requests, put_count=23795 evicted_count=4000 eviction_rate=0.168103 and unsatisfied allocation rate=0.176125
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:259] Raising pool_size_limit_ from 7764 to 8540
+267149/267149 [==============================] - 2593s - loss: 2.5639
+Epoch 2/2
+267149/267149 [==============================] - 2608s - loss: 1.8130
+
+----- diversity: 0.2
+----- Generating with seed: "could take whatever you want from mine.<q> yeah well lemme know when you get something in there and i will.<a>
+still killing me from having to get that bike off the wall. by myself.<q>well if it's any consolation i did get her number.<a>
+ ah i think i really strained it. ow.<q>aw i do"
+could take whatever you want from mine.<q> yeah well lemme know when you get something in there and i will.<a>
+still killing me from having to get that bike off the wall. by myself.<q>well if it's any consolation i did get her number.<a>
+ ah i think i really strained it. ow.<q>aw i don't the to a me to to a conde the have to to to the wait to to i want a con to to to to the to a ment to to come to to i would the the to to the boy to to to to i be a mon to me to to the the they we to a m a come to they i going a come here the to a to the the wait to to i let a me to to me to to to to to to a mont my to to here to to they i don't way to to the pay to to the a to the we to to to
+
+----- diversity: 0.5
+----- Generating with seed: "could take whatever you want from mine.<q> yeah well lemme know when you get something in there and i will.<a>
+still killing me from having to get that bike off the wall. by myself.<q>well if it's any consolation i did get her number.<a>
+ ah i think i really strained it. ow.<q>aw i do"
+could take whatever you want from mine.<q> yeah well lemme know when you get something in there and i will.<a>
+still killing me from having to get that bike off the wall. by myself.<q>well if it's any consolation i did get her number.<a>
+ ah i think i really strained it. ow.<q>aw i don't wait i think to to hand wait they to would think a le he's they some any me the lape to me a dora in to toge they i gonna know and me say te a to a re a rey out the net they we'd would want they is the my a going a may hull that the conk any siten'.<a>
+i know seom to to can see a gonna down with the seend a mat they was to comer's to you going a ston me cunt you don't on i drecond. to he's too
+
+----- diversity: 1.0
+----- Generating with seed: "could take whatever you want from mine.<q> yeah well lemme know when you get something in there and i will.<a>
+still killing me from having to get that bike off the wall. by myself.<q>well if it's any consolation i did get her number.<a>
+ ah i think i really strained it. ow.<q>aw i do"
+could take whatever you want from mine.<q> yeah well lemme know when you get something in there and i will.<a>
+still killing me from having to get that bike off the wall. by myself.<q>well if it's any consolation i did get her number.<a>
+ ah i think i really strained it. ow.<q>aw i don't george i eot dide'<q/home/brando/NEXUS/code/machine_learning/seinfeld/lstm_text_generation.py:93: RuntimeWarning: divide by zero encountered in log
+  preds = np.log(preds) / temperature
+>i who i mong that? well limchhe peace mull dinned a o would keoter!<q>you huns in and.<q>go ton<a>
+ah can ret seagg macine no comed?<q>ohnak you you'll wait i t net i netent on'ckast. <q>so gooda. you hey for?<a>
+i all pathey.<a>
+coon nexhe . it for that de?<q>nawly. wait elaise. it pron cilling?<a>
+who we a prerercalicingtel.<q>why don't want all i did it good? you.<q>it'
+
+----- diversity: 1.2
+----- Generating with seed: "could take whatever you want from mine.<q> yeah well lemme know when you get something in there and i will.<a>
+still killing me from having to get that bike off the wall. by myself.<q>well if it's any consolation i did get her number.<a>
+ ah i think i really strained it. ow.<q>aw i do"
+could take whatever you want from mine.<q> yeah well lemme know when you get something in there and i will.<a>
+still killing me from having to get that bike off the wall. by myself.<q>well if it's any consolation i did get her number.<a>
+ ah i think i really strained it. ow.<q>aw i doing donna'l i'll'. come to coee'? oe evo aot yeu'll jode you. i a stltau.<q>heomd ou yadatiday'm the evenef pastive to i sias.<q>hary bids you to at tf beied inpaciloucemi haw hip beink outriin bady in ahamwing and feper anot.<a>
+ore?! cow hhe you. just boyt!<a>
+that tow is wiywen'a.<q>ther. what mughey!. making a o mying' besie?<a>
+you doooot silev. i plansor.<q>that'rl giancare'd jowonmed coldl?
