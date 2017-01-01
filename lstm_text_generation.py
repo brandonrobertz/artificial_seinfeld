@@ -17,7 +17,7 @@ from keras.layers import Dense, Activation, Dropout
 from keras.layers import LSTM
 from keras.optimizers import RMSprop
 from keras.utils.data_utils import get_file
-from keras.regularizers import l2
+# from keras.regularizers import l2
 import numpy as np
 import random
 import sys
@@ -29,7 +29,7 @@ BATCH_SIZE = 200
 LEARNING_RATE = 0.01
 DROPOUT = 0.1
 
-TEXT_STEP = 1
+TEXT_STEP = 20
 # this will be discovered from the text and it longest
 # sentence length (Q + A)
 MAXLEN = None
@@ -37,14 +37,21 @@ MAXLEN = None
 # path = sys.argv[1]
 PATH = "seinfeld_lstm_corpus.txt"
 
-print('LSTM_SIZE',LSTM_SIZE)
-print('EPOCHS',EPOCHS)
-print('BATCH_SIZE',BATCH_SIZE)
-print('TEXT_STEP',TEXT_STEP)
-print('LEARNING_RATE',LEARNING_RATE)
+
+print('LSTM_SIZE', LSTM_SIZE)
+print('EPOCHS', EPOCHS)
+print('BATCH_SIZE', BATCH_SIZE)
+print('TEXT_STEP', TEXT_STEP)
+print('LEARNING_RATE', LEARNING_RATE)
 
 
 def vectorize(text, chars, char_indices, indices_char):
+    """ Turn our text into two sets of features, X and y, where
+    X is a sliding window of MAXLEN characters and y is the next
+    character that is coming. Note that the "character" is actually
+    a one-hot encoding of the character, so each "character" is represented
+    by a vector of zeros and a one indicating the index of the char.
+    """
     sentences = []
     next_chars = []
     for i in range(0, len(text) - MAXLEN, TEXT_STEP):
@@ -86,22 +93,23 @@ def load_corpus(path):
     # here is where we set global MAXLEN
     global MAXLEN
     MAXLEN = max(map(lambda x: len(x), text.split('<a>')))
-    print('MAXLEN',MAXLEN)
+    print('MAXLEN', MAXLEN)
 
     chars = sorted(list(set(text)))
     print('total chars:', len(chars))
-    print('chars',chars)
+    print('chars', chars)
 
     char_indices = dict((c, i) for i, c in enumerate(chars))
     indices_char = dict((i, c) for i, c in enumerate(chars))
-    print('char_indices',char_indices)
-    print('indices_char',indices_char)
+    print('char_indices', char_indices)
+    print('indices_char', indices_char)
 
     validate, test, train = split_data(text)
     val_X, val_y = vectorize(validate, chars, char_indices, indices_char)
     ts_X, ts_y = vectorize(test, chars, char_indices, indices_char)
     tr_X, tr_y = vectorize(train, chars, char_indices, indices_char)
-    return val_X, val_y, ts_X, ts_y, tr_X, tr_y, chars
+    return val_X, val_y, ts_X, ts_y, tr_X, tr_y, chars, \
+        char_indices, indices_char
 
 
 def build_model(chars):
@@ -140,7 +148,7 @@ def sample(preds, temperature=1.0):
     return np.argmax(probas)
 
 
-def output_from_seed(model, sentence):
+def output_from_seed(model, sentence, char_indices, indices_char):
     for diversity in [0.2, 0.5, 1.0, 1.2]:
         print()
         print('----- diversity:', diversity)
@@ -177,7 +185,8 @@ if __name__ == "__main__":
     #     print( "USAGE: {0} path_to_corpus".format(sys.argv[0]))
     #     sys.exit(1)
 
-    val_X, val_y, ts_X, ts_y, tr_X, tr_y, chars = load_corpus(PATH)
+    val_X, val_y, ts_X, ts_y, tr_X, tr_y, \
+        chars, char_indices, indices_char = load_corpus(PATH)
     model = build_model(chars)
     train(model, tr_X, tr_y)
 
@@ -185,4 +194,4 @@ if __name__ == "__main__":
     # start_index = random.randint(0, len(text) - maxlen - 1)
     # sentence = text[start_index: start_index + maxlen]
 
-    output_from_seed( model, sentence)
+    output_from_seed( model, sentence, char_indices, indices_char)
