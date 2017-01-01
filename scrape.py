@@ -78,7 +78,7 @@ def usage():
     print "USAGE: scrape.py [-m jerry|all] script.shtml"
     sys.exit(1)
 
-strip = r"\.\.\.|\.\.|\s'|'\s|\"|\(.*[\)\'\:]|\n|\r|\d|\*.*\*|[^a-z\.\?\! ]"
+strip = r"\.\.\.|\.\.|\s'|'\s|\"|\(.*[\)\'\:]|\n|\r|\d|\*.*\*|[^A-Za-z\'\.\?\! ]"
 
 if __name__ == "__main__":
     mode = "jerry"
@@ -87,7 +87,7 @@ if __name__ == "__main__":
         usage()
     elif len(sys.argv) == 2:
         path = sys.argv[1]
-    elif len(sys.argv) == 4:
+    elif len(sys.argv) == 4 and argv[1] == '-m':
         path = sys.argv[3]
         mode = sys.argv[2]
     if mode not in ["jerry", "all"]:
