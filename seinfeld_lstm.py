@@ -11,7 +11,7 @@ import numpy as np
 # import random
 import sys
 from functools import reduce
-# import json
+import cPickle as pickle
 # import os
 
 # disable verbose logging
@@ -22,10 +22,10 @@ class SeinfeldAI(object):
     """ Wrapper for building, training and testing a LSTM model
     """
 
-    def __init__(self, lstm_size=200, epochs=1, batch_size=200,
+    def __init__(self, lstm_size=200, epochs=1, batch_size=128,
                  learning_rate=0.01, dropout=0.1, activation='softmax',
                  text_step=1, window=40, path='seinfeld_lstm_corpus.jerry.txt',
-                 debug=True, character='jerry'):
+                 debug=True, character='jerry', write_model=True):
         self.LSTM_SIZE = int(lstm_size)
         self.EPOCHS = int(epochs)
         self.BATCH_SIZE = int(batch_size)
@@ -36,6 +36,7 @@ class SeinfeldAI(object):
         self.WINDOW = int(window)
         self.PATH = path
         self.character = character
+        self.write_model = write_model
         if debug:
             logmsg = 'LSTM_SIZE {0} EPOCHS {1} BATCH_SIZE {2} TEXT_STEP {3} ' \
                 'LEARNING_RATE {4} WINDOW {5} DROPOUT {6} ACTIVATION {7} ' \
@@ -153,7 +154,8 @@ class SeinfeldAI(object):
             self.LSTM_SIZE,
             input_shape=(self.WINDOW, len(chars)),
             dropout_W=self.DROPOUT,
-            dropout_U=self.DROPOUT
+            dropout_U=self.DROPOUT,
+            unroll=True
         ))
         model.add(Dense(len(chars)))
         # other options include relu
@@ -209,10 +211,10 @@ class SeinfeldAI(object):
                 sys.stdout.flush()
             print()
 
-    def save_model(self, model):
+    def save_model(self, model, chars, char_indices, indices_char):
         """ Write model to disk
         """
-        name = 'model_{0}_{1}_{2}_{3}_{4}_{5}_{6}_{7}_{8}_h5'.format(
+        name_pfx = 'model_{0}_{1}_{2}_{3}_{4}_{5}_{6}_{7}_{8}'.format(
             self.character,
             self.LSTM_SIZE,
             self.EPOCHS,
@@ -222,7 +224,14 @@ class SeinfeldAI(object):
             self.ACTIVATION,
             self.TEXT_STEP,
             self.WINDOW)
-        model.save(name)
+        modelname = name_pfx + '.h5'
+        model.save(modelname)
+        with open(modelname + '.aux.p', 'w') as f:
+            pickle.dump({
+                'chars': chars,
+                'char_indices': char_indices,
+                'indices_char': indices_char
+            }, f)
 
     def test_model(self, model, X, y):
         """ Take a set of inputs and test our trained LSTM, returning loss
@@ -248,6 +257,8 @@ class SeinfeldAI(object):
         # # output_from_seed(model, sentence, char_indices, indices_char, chars)
         test_loss = self.test_model(model, ts_X, ts_y)
         # print('~ test_score', test_loss)
+        if self.write_model:
+            self.save_model(model, chars, char_indices, indices_char)
         return training_loss, test_loss
 
 
