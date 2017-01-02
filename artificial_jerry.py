@@ -1,15 +1,4 @@
 #!/usr/bin/env python2.7
-'''Example script to generate text from Nietzsche's writings.
-
-At least 20 epochs are required before the generated text
-starts sounding coherent.
-
-It is recommended to run this script on GPU, as recurrent
-networks are quite computationally intensive.
-
-If you try this script on new data, make sure your corpus
-has at least ~100k characters. ~1M is better.
-'''
 from __future__ import print_function
 from keras.models import Sequential
 from keras.layers import Dense, Activation  # , Dropout
@@ -24,7 +13,6 @@ import sys
 # import json
 # import os
 
-
 # disable verbose logging
 K.tf.logging.set_verbosity(K.tf.logging.ERROR)
 
@@ -32,7 +20,7 @@ K.tf.logging.set_verbosity(K.tf.logging.ERROR)
 class ArtificialJerry(object):
     def __init__(self, lstm_size=200, epochs=1, batch_size=200,
                  learning_rate=0.01, dropout=0.1, activation='softmax',
-                 text_step=1, window=40):
+                 text_step=1, window=40, debug=True):
         self.LSTM_SIZE = int(lstm_size)
         self.EPOCHS = int(epochs)
         self.BATCH_SIZE = int(batch_size)
@@ -42,15 +30,20 @@ class ArtificialJerry(object):
         self.TEXT_STEP = int(text_step)
         self.WINDOW = int(window)
         self.PATH = "seinfeld_lstm_corpus.txt"
-        print('# PARAMS')
-        print('~ LSTM_SIZE', self.LSTM_SIZE)
-        print('~ EPOCHS', self.EPOCHS)
-        print('~ BATCH_SIZE', self.BATCH_SIZE)
-        print('~ TEXT_STEP', self.TEXT_STEP)
-        print('~ LEARNING_RATE', self.LEARNING_RATE)
-        print('~ WINDOW', self.WINDOW)
-        print('~ DROPOUT', self.DROPOUT)
-        print('~ ACTIVATION', self.ACTIVATION)
+        if debug:
+            logmsg = 'LSTM_SIZE {0} EPOCHS {1} BATCH_SIZE {2} TEXT_STEP {3} ' \
+                'LEARNING_RATE {4} WINDOW {5} DROPOUT {6} ACTIVATION {7}'
+            print(logmsg.format(
+                self.LSTM_SIZE,
+                self.EPOCHS,
+                self.BATCH_SIZE,
+                self.LEARNING_RATE,
+                self.DROPOUT,
+                self.ACTIVATION,
+                self.TEXT_STEP,
+                self.WINDOW,
+                self.PATH
+            ))
 
     def vectorize_sentences(self, text, chars, char_indices,
                             indices_char, debug=False):
@@ -122,10 +115,6 @@ class ArtificialJerry(object):
         """
         text = open(path).read().lower().replace('\n', '')
 
-        # # here is where we set global WINDOW
-        # global WINDOW
-        # WINDOW = max(map(lambda x: len(x), text.split('<a>')))
-
         chars = sorted(list(set(text)))
 
         char_indices = dict((c, i) for i, c in enumerate(chars))
@@ -168,7 +157,10 @@ class ArtificialJerry(object):
     def train(self, model, X, y):
         """ Train our model for epochs, returning accuracy history
         """
-        return model.fit(X, y, batch_size=self.BATCH_SIZE, nb_epoch=self.EPOCHS)
+        return model.fit(
+            X, y,
+            batch_size=self.BATCH_SIZE,
+            nb_epoch=self.EPOCHS)
 
     def sample(self, preds, temperature=1.0):
         """ Return softmax with "temperature" scores.
@@ -200,7 +192,7 @@ class ArtificialJerry(object):
                 x = np.zeros((1, self.WINDOW, len(chars)))
                 for t, char in enumerate(sentence):
                     x[0, t, char_indices[char]] = 1.
-                preds = model.predict(x, verbose=0)[0]
+                preds = model.predict(x)[0]
                 next_index = self.sample(preds, diversity)
                 next_char = indices_char[next_index]
                 generated += next_char
@@ -226,13 +218,13 @@ class ArtificialJerry(object):
     def test_model(self, model, X, y):
         """ Take a set of inputs and test our trained LSTM, returning loss
         """
-        score = model.evaluate(X, y, batch_size=self.BATCH_SIZE)
-        # print('Test score:', score)
-        # print('Test accuracy:', acc)
+        score = model.evaluate(
+            X, y,
+            batch_size=self.BATCH_SIZE)
         return score
 
-    def epoch(self):
-        """ Generate, train and test a model, returning train and test loss
+    def run(self):
+        """ Generate, train and test a model, returning train, test loss
         """
         val_X, val_y, ts_X, ts_y, tr_X, tr_y, chars, \
             char_indices, indices_char = self.load_corpus(self.PATH)
@@ -252,32 +244,18 @@ class ArtificialJerry(object):
 
 def five_models(**kwargs):
     """ Build, train and test five models with the specified params. Return
-    averaged loss for train and test between all five iterations.
+    averaged loss for train and test between all five iterations. Passes
+    all kwargs (hyperparams) onto ArtificialJerry class initialization.
     """
     jerry = ArtificialJerry(**kwargs)
-    # lstm_size=lstm_size, epochs=1, batch_size=200,
-    # learning_rate0.01, dropout=0.1, activation='softmax',
-    # text_step=1, window=40)
     tr_err = 0
     ts_err = 0
     for i in range(5):
-        training_loss, test_loss = jerry.epoch()
+        training_loss, test_loss = jerry.run()
         tr_err += training_loss
         ts_err += test_loss
     return tr_err/5, ts_err/5
 
 
 if __name__ == "__main__":
-    # if len(sys.argv) < 2:
-    #     print( "USAGE: {0} path_to_corpus".format(sys.argv[0]))
-    #     sys.exit(1)
-
-    # tr_err = 0
-    # ts_err = 0
-    # for i in range(5):
-    #     training_loss, test_loss = epoch()
-    #     tr_err += training_loss
-    #     ts_err += test_loss
-    # print('* avg train err', tr_err/5)
-    # print('* avg test err', ts_err/5)
     five_models()
