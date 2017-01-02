@@ -18,9 +18,12 @@ K.tf.logging.set_verbosity(K.tf.logging.ERROR)
 
 
 class ArtificialJerry(object):
+    """ Wrapper for building, training and testing a LSTM model
+    """
     def __init__(self, lstm_size=200, epochs=1, batch_size=200,
                  learning_rate=0.01, dropout=0.1, activation='softmax',
-                 text_step=1, window=40, debug=True):
+                 text_step=1, window=40, path='seinfeld_lstm_corpus.txt',
+                 debug=True):
         self.LSTM_SIZE = int(lstm_size)
         self.EPOCHS = int(epochs)
         self.BATCH_SIZE = int(batch_size)
@@ -29,7 +32,7 @@ class ArtificialJerry(object):
         self.ACTIVATION = activation
         self.TEXT_STEP = int(text_step)
         self.WINDOW = int(window)
-        self.PATH = "seinfeld_lstm_corpus.txt"
+        self.PATH = path
         if debug:
             logmsg = 'LSTM_SIZE {0} EPOCHS {1} BATCH_SIZE {2} TEXT_STEP {3} ' \
                 'LEARNING_RATE {4} WINDOW {5} DROPOUT {6} ACTIVATION {7}'
