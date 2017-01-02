@@ -2,11 +2,11 @@
 
 With new episodes of Seinfeld extremely unlikely, how can we combat the prospect of watching syndicated episodes for the rest of our lives? Sit quietly, watching all 180 episodes 'til death? I think not. If Seinfeld won't make new episodes, we'll have to do it ourselves -- with the help of some AI, of course.
 
-This repository contains all the tools you need to:
+This repository is an exploration of this idea and contains some tools to:
 
-1.  Scrape all Seinfeld episode transcripts
+1.  Scrape all Seinfeld episode transcripts (based on a fork of [seinfeld-scripts](https://github.com/colinpollock/seinfeld-scripts))
 2.  Extract all character statement/response pairs from the HTML transcripts
-3.  Train a Long-Short Term Memory Neural Network on the Seinfeld character corpus
+3.  Train a Long-Short Term Memory Neural Network on the Seinfeld character corpus (using [Keras](https://github.com/fchollet/keras))
 4.  Generate your own Seinfeld scripts
 
 ## How it works
