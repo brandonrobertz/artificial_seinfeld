@@ -2,6 +2,7 @@
 """
 Source: https://github.com/colinpollock/seinfeld-scripts
 """
+from __future__ import print_function
 import re
 import argparse
 

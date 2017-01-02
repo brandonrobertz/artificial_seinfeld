@@ -1,4 +1,5 @@
 #!/usr/bin/env python2.7
+from __future__ import print_function
 from hyperopt import fmin, tpe, hp, STATUS_OK, Trials
 # import walker  # walker.py in the same folder
 import numpy as np
@@ -16,35 +17,39 @@ from seinfeld_lstm import SeinfeldAI
 space = {
     'learning_rate': hp.loguniform('learning_rate', np.log(1e-5), np.log(1)),
     'lstm_size': hp.quniform('lstm_size', 20, 300, 1),
-    'dropout': hp.quniform('dropout', 0.0, 1, 1),
+    'dropout': hp.quniform('dropout', 0.0, 0.8, 1),
     'activation': hp.choice('activation', ['softmax', 'relu']),
     'text_step': hp.quniform('text_step', 1, 5, 1),
     'window': hp.quniform('window', 5, 140, 1),
-    'epochs':  hp.quniform('epochs', 1, 20, 1)
+    'epochs':  hp.quniform('epochs', 1, 5, 1)
 }
 
 trials = None
 
 
-def save_trials():
-    pickle.dump(trials, open("lstm_hyperopt.p", "wb"))
+def save_trials(character):
+    paramsfile = "lstm_hyperopt.{0}.p".format(character)
+    pickle.dump(trials, open(paramsfile, "wb"))
 
 
-def main():
+def main(character):
     epochs = 3
     global trials
+    paramsfile = "lstm_hyperopt.{0}.p".format(character)
     try:
-        trials = pickle.load(open("lstm_hyperopt.p", "rb"))
+        trials = pickle.load(open(paramsfile, "rb"))
     except:
         print("Starting new trials file")
         trials = Trials()
 
     def objective(args):
-        jerry = SeinfeldAI(**args)
+        args['character'] = character
+        args['path'] = 'seinfeld_lstm_corpus.{0}.txt'.format(character)
+        model = SeinfeldAI(**args)
         tr_err = np.zeros(epochs)
         ts_err = np.zeros(epochs)
         for i in range(epochs):
-            training_loss, test_loss = jerry.run()
+            training_loss, test_loss = model.run()
             tr_err[i] = training_loss
             ts_err[i] = test_loss
         print("Train:", tr_err.mean(), "Test:", ts_err.mean(), "for", args)
@@ -64,7 +69,7 @@ def main():
                   x for x in trials.losses() if x is not None])))
         print()
         print(i, "Best result was: ", best)
-        save_trials()
+        save_trials(character)
 
 
 def signal_handler(signal, frame):
@@ -77,4 +82,8 @@ def signal_handler(signal, frame):
 signal.signal(signal.SIGINT, signal_handler)
 
 if __name__ == '__main__':
-    main()
+    if len(sys.argv) != 2:
+        print("USAGE ./optimize.py SEINFELD_CHARACTER")
+        sys.exit(1)
+    character = sys.argv[1]
+    main(character)

@@ -1,6 +1,6 @@
 CHARACTER=jerry
 
-default: install_deps scripts corpus train optimize
+default: install_deps scripts corpus optimize
 
 install_deps:
 	pip install -r requirements.txt
@@ -10,14 +10,14 @@ scripts:
 	./download.py ./scripts/
 
 corpus:
-	find ./scripts/ -iname '*.shtml' -exec ./scrape.py  --character ${CHARACTER} {} \; \
+	find ./scripts/ -iname '*.shtml' -exec ./scrape.py --character ${CHARACTER} {} \; \
 			> ./seinfeld_lstm_corpus.${CHARACTER}.txt
 
 train:
-	python lstm_text_generation.py
+	python seinfeld_lstm.py
 
 optimize:
-	python optimize.py
+	python optimize.py ${CHARACTER}
 
 clean:
 	find ./ -iname "*.pyc" -delete

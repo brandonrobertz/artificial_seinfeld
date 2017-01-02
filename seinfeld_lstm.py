@@ -10,6 +10,7 @@ from keras import backend as K
 import numpy as np
 # import random
 import sys
+from functools import reduce
 # import json
 # import os
 
@@ -20,10 +21,11 @@ K.tf.logging.set_verbosity(K.tf.logging.ERROR)
 class SeinfeldAI(object):
     """ Wrapper for building, training and testing a LSTM model
     """
+
     def __init__(self, lstm_size=200, epochs=1, batch_size=200,
                  learning_rate=0.01, dropout=0.1, activation='softmax',
-                 text_step=1, window=40, path='seinfeld_lstm_corpus.txt',
-                 debug=True):
+                 text_step=1, window=40, path='seinfeld_lstm_corpus.jerry.txt',
+                 debug=True, character='jerry'):
         self.LSTM_SIZE = int(lstm_size)
         self.EPOCHS = int(epochs)
         self.BATCH_SIZE = int(batch_size)
@@ -33,9 +35,11 @@ class SeinfeldAI(object):
         self.TEXT_STEP = int(text_step)
         self.WINDOW = int(window)
         self.PATH = path
+        self.character = character
         if debug:
             logmsg = 'LSTM_SIZE {0} EPOCHS {1} BATCH_SIZE {2} TEXT_STEP {3} ' \
-                'LEARNING_RATE {4} WINDOW {5} DROPOUT {6} ACTIVATION {7}'
+                'LEARNING_RATE {4} WINDOW {5} DROPOUT {6} ACTIVATION {7} ' \
+                'PATH {8} CHARACTER {9}'
             print(logmsg.format(
                 self.LSTM_SIZE,
                 self.EPOCHS,
@@ -44,7 +48,9 @@ class SeinfeldAI(object):
                 self.LEARNING_RATE,
                 self.WINDOW,
                 self.DROPOUT,
-                self.ACTIVATION
+                self.ACTIVATION,
+                self.PATH,
+                self.character
             ))
 
     def vectorize_sentences(self, text, chars, char_indices,
@@ -206,7 +212,8 @@ class SeinfeldAI(object):
     def save_model(self, model):
         """ Write model to disk
         """
-        name = 'lstm_model_{0}_{1}_{2}_{3}_{4}_{5}_{6}_{7}_h5'.format(
+        name = 'model_{0}_{1}_{2}_{3}_{4}_{5}_{6}_{7}_{8}_h5'.format(
+            self.character,
             self.LSTM_SIZE,
             self.EPOCHS,
             self.BATCH_SIZE,
