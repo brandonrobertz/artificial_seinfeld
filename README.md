@@ -8,6 +8,28 @@ This repository contains all the tools you need to:
 3. Train a Long-Short Term Memory Neural Network on Seinfeld transcripts
 4. Generate your own Seinfeld scripts
 
+## How it works
+
+The model operates on a simple principle, for each character, take their responses to
+any statement/question posed. The input is the statement/question and we train on the
+character's response. If we generalize this as "question/answer", we can encode each
+pair like so:
+
+    jerry i wanna tell you that meal was the worst.<q>what do you expect? it's airline food.<a>
+    since when is george a writer?<q>what writer? it's a sitcom.<a>
+
+Our model is trained by seeding the network with the first chunk of the question. The `y` target is
+the next character. We continue to move this text-window forward, one character at a time, each time
+supplying the next, unforseen character as the target. We do this until we get to the end-of-response
+marker, `<a>`.
+
+The full corpus is split into three chunks: 30% validation, 60% training, 10% test. During hyperparameter
+optimization, we do a full model generation, training, and evaluation cycle five times, returning the
+average training and test loss. The optimizer looks to minimize our test loss.
+
+The overall theory here is that we could generate a full Seinfeld script by training a model for
+each character, and then having the models generate dialogue for scenes.
+
 ## Getting Started
 
 If you just want to train a Jerry LSTM model, you can simply use the `Makefile` to do so:
@@ -22,21 +44,6 @@ To change the character, append the character override. This works with any of t
 other make commands (below) as well:
 
     make CHARACTER=kramer
-
-## How it works
-
-The model operates on a simple principle, for each character, take their responses to
-any statement/question posed. The input is the statement/question and we train on the
-character's response. If we generalize this as "question/answer", we can encode each
-pair like so:
-
-    jerry i wanna tell you that meal was the worst.<q>what do you expect? it's airline food.<a>
-    since when is george a writer?<q>what writer? it's a sitcom.<a>
-
-In theory, our network would be seeded with the question, continue to seed the network, sliding
-a text window forward (one or more chars at a time) until the end-of-question indicator is seen
-`<q>`, at which point we read from the network, character-by-character, until we get the
-end-of-response indicator, `<a>'.
 
 ## Commands
 
