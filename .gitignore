@@ -8,3 +8,5 @@ char-models
 lstm*.json
 jerry_data
 tensorflow
+*.pyc
+*.p
