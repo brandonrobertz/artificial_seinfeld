@@ -12,7 +12,6 @@ import time
 import requests
 
 
-
 def _format_num(n):
     return '%02d' % n
 
@@ -53,7 +52,7 @@ def main(args):
 
     num_episodes = len(episode_numbers)
     for idx, episode_number in enumerate(episode_numbers, start=1):
-        print >> sys.stderr, '[Ep. %s]\t\t%d of %d (%.2f%%)' %  (
+        print >> sys.stderr, '[Ep. %s]\t\t%d of %d (%.2f%%)' % (
             episode_number, idx,
             len(episode_numbers),
             idx / num_episodes * 100
@@ -63,7 +62,6 @@ def main(args):
             args.output_directory,
             '%s.shtml' % episode_number
         )
-
 
         if args.no_overwrite is True and os.path.exists(out_path):
             continue
