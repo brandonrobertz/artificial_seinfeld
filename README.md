@@ -24,12 +24,28 @@ the next character. We continue to move this text-window forward, one character 
 supplying the next, unforseen character as the target. We do this until we get to the end-of-response
 marker, `<a>`.
 
+To illustrate this, using the second question/answer pair, with a `WINDOW` of 10 and a batch size
+of 1, our inputs to our model (`X` and `y`) would look like this:
+
+    # first input
+    X = 'jerry i wa'
+    y = 'n'
+    # second input ...
+    X = 'erry i wan'
+    y = 'n'
+    # ... Nth input
+    X = ' sitcom.<a'
+    y = '>'
+
+The next iteration, we'd move to the start of the next Q/A pair, fill the window, and continue as above.
+We do this until we've gone through the entire corpus.
+
 The full corpus is split into three chunks: 30% validation, 60% training, 10% test. During hyperparameter
 optimization, we do a full model generation, training, and evaluation cycle five times, returning the
 average training and test loss. The optimizer looks to minimize our test loss.
 
 The overall theory here is that we could generate a full Seinfeld script by training a model for
-each character, then have the models feed off eachother, and generate dialogue for scenes.
+each character, then have the models feed off each other, and generate dialogue for scenes.
 
 ## Getting Started
 
