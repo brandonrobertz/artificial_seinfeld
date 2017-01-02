@@ -3,15 +3,16 @@
 With new episodes of Seinfeld extremely unlikely, how can we combat the prospect of watching syndicated episodes for the rest of our lives? Sit quietly, watching all 180 episodes 'til death? I think not. If Seinfeld won't make new episodes, we'll have to do it ourselves -- with the help of some AI, of course.
 
 This repository contains all the tools you need to:
-1. Scrape all Seinfeld episode transcripts
-2. Pre-process the HTML files and extract all character statement/response pairs
-3. Train a Long-Short Term Memory Neural Network on Seinfeld transcripts
-4. Generate your own Seinfeld scripts
+
+1.  Scrape all Seinfeld episode transcripts
+2.  Extract all character statement/response pairs from the HTML transcripts
+3.  Train a Long-Short Term Memory Neural Network on the Seinfeld character corpus
+4.  Generate your own Seinfeld scripts
 
 ## How it works
 
-The model operates on a simple principle, for each character, take their responses to
-any statement/question posed. The input is the statement/question and we train on the
+The model operates on a simple principle: for each character in the script, take their response(s) to
+any statement/question posed. The model input is the statement/question and we train on the
 character's response. If we generalize this as "question/answer", we can encode each
 pair like so:
 
@@ -28,7 +29,7 @@ optimization, we do a full model generation, training, and evaluation cycle five
 average training and test loss. The optimizer looks to minimize our test loss.
 
 The overall theory here is that we could generate a full Seinfeld script by training a model for
-each character, and then having the models generate dialogue for scenes.
+each character, then have the models feed off eachother, and generate dialogue for scenes.
 
 ## Getting Started
 
