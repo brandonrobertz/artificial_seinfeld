@@ -7,7 +7,7 @@ download:
 	./download.py ./scripts/
 
 corpus:
-	find ./scripts/ -iname '*.shtml' -exec ./scrape.py  {} \; > ./seinfeld_lstm_corpus.txt
+	find ./scripts/ -iname '*.shtml' -exec ./scrape.py  {} \; > ./seinfeld_lstm_corpus.test.txt
 
 train:
 	python lstm_text_generation.py

@@ -2,10 +2,8 @@
 """
 Source: https://github.com/colinpollock/seinfeld-scripts
 """
-
-
 import re
-import sys
+import argparse
 
 
 def unescape(s):
@@ -74,46 +72,44 @@ def scrape_episode(html):
     return (info, utterances)
 
 
-def usage():
-    print "USAGE: scrape.py [-m jerry|all] script.shtml"
-    sys.exit(1)
+def args():
+    desc = 'Take a raw SHTML Seinfeld transcript, downloaded using '\
+        'download.py from seinology.com, and extract statement ' \
+        'and response pair for a given Seinfeld character.'
+    parser = argparse.ArgumentParser(description=desc)
+    parser.add_argument('script', type=str,
+                        help='Seinology SHTML transcript file')
+    parser.add_argument('--character', default='jerry',
+                        help='Seinfeld script character to pull responses for')
+    args = parser.parse_args()
+    return args.script, args.character
 
-strip = r"\.\.\.|\.\.|\s'|'\s|\"|\(.*[\)\'\:]|\n|\r|\d|\*.*\*|[^A-Za-z\'\.\?\! ]"
+
+# this is responsible for cleaning the scripts
+strip = "\.\.\.|\.\.|\s'|'\s|\"|\(.*[\)\'\:]|\n|\r|\d|\*.*\*|" + \
+    "[^A-Za-z\'\.\?\! ]"
 
 if __name__ == "__main__":
-    mode = "jerry"
-    path = None
-    if len(sys.argv) < 2:
-        usage()
-    elif len(sys.argv) == 2:
-        path = sys.argv[1]
-    elif len(sys.argv) == 4 and argv[1] == '-m':
-        path = sys.argv[3]
-        mode = sys.argv[2]
-    if mode not in ["jerry", "all"]:
-        usage()
+    path, character = args()
     with open(path) as file:
         info, utterances = scrape_episode(file.read())
         last_line = None
         for utterance in utterances:
-            speaker = utterance[0].lower()
+            speaker = utterance[0].lower().strip()
             line = re.sub(
                 "\s{2,}",
                 " ",
                 re.sub(strip, " ", utterance[1])
-            ).lower()
-            if mode == "jerry":
-                if last_line is None:
-                    last_line = line
-                    continue
-                if speaker == 'jerry' \
-                        and len(line) < 150 \
-                        and len(line) > 15 \
-                        and len(last_line) < 150 \
-                        and len(last_line) > 15:
-                    print("{0}<q>{1}<a>".format(
-                        last_line.lower(), line.lower()
-                    ))
+            ).lower().strip()
+            if last_line is None:
                 last_line = line
-            elif mode == "all":
-                print line
+                continue
+            if speaker == character \
+                    and len(line) < 150 \
+                    and len(line) > 15 \
+                    and len(last_line) < 150 \
+                    and len(last_line) > 15:
+                print("{0}<q>{1}<a>".format(
+                    last_line.lower(), line.lower()
+                ))
+            last_line = line

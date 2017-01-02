@@ -10,7 +10,7 @@ import os
 # this needs to go before keras loads to disable annoying verbose logs
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # noqa
 
-from artificial_jerry import ArtificialJerry
+from seinfeld_lstm import SeinfeldAI
 
 
 space = {
@@ -40,7 +40,7 @@ def main():
         trials = Trials()
 
     def objective(args):
-        jerry = ArtificialJerry(**args)
+        jerry = SeinfeldAI(**args)
         tr_err = np.zeros(epochs)
         ts_err = np.zeros(epochs)
         for i in range(epochs):

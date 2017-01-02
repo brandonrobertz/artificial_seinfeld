@@ -17,7 +17,7 @@ import sys
 K.tf.logging.set_verbosity(K.tf.logging.ERROR)
 
 
-class ArtificialJerry(object):
+class SeinfeldAI(object):
     """ Wrapper for building, training and testing a LSTM model
     """
     def __init__(self, lstm_size=200, epochs=1, batch_size=200,
@@ -40,12 +40,11 @@ class ArtificialJerry(object):
                 self.LSTM_SIZE,
                 self.EPOCHS,
                 self.BATCH_SIZE,
-                self.LEARNING_RATE,
-                self.DROPOUT,
-                self.ACTIVATION,
                 self.TEXT_STEP,
+                self.LEARNING_RATE,
                 self.WINDOW,
-                self.PATH
+                self.DROPOUT,
+                self.ACTIVATION
             ))
 
     def vectorize_sentences(self, text, chars, char_indices,
@@ -248,13 +247,13 @@ class ArtificialJerry(object):
 def five_models(**kwargs):
     """ Build, train and test five models with the specified params. Return
     averaged loss for train and test between all five iterations. Passes
-    all kwargs (hyperparams) onto ArtificialJerry class initialization.
+    all kwargs (hyperparams) onto SeinfeldAI class initialization.
     """
-    jerry = ArtificialJerry(**kwargs)
+    lstm_model = SeinfeldAI(**kwargs)
     tr_err = 0
     ts_err = 0
     for i in range(5):
-        training_loss, test_loss = jerry.run()
+        training_loss, test_loss = lstm_model.run()
         tr_err += training_loss
         ts_err += test_loss
     return tr_err/5, ts_err/5
