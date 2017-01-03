@@ -15,13 +15,11 @@ from seinfeld_lstm import SeinfeldAI
 
 
 space = {
-    'learning_rate': hp.loguniform('learning_rate', np.log(1e-5), np.log(1)),
-    'lstm_size': hp.quniform('lstm_size', 20, 700, 1),
+    'learning_rate': hp.loguniform('learning_rate', np.log(1e-5), np.log(0.5)),
+    'lstm_size': hp.quniform('lstm_size', 20, 900, 1),
     'dropout': hp.uniform('dropout', 0.0, 0.9),
-    'activation': hp.choice('activation', ['softmax', 'relu']),
-    'text_step': hp.uniform('text_step', 1, 10),
-    'window': hp.quniform('window', 5, 200, 1),
-    'epochs':  hp.quniform('epochs', 1, 15, 1)
+    'window': hp.quniform('window', 1, 200, 1),
+    'epochs':  hp.quniform('epochs', 1, 25, 1)
 }
 
 trials = None
@@ -33,7 +31,7 @@ def save_trials(character):
 
 
 def main(character):
-    epochs = 1
+    epochs = 2
     global trials
     paramsfile = "lstm_hyperopt.{0}.p".format(character)
     try:
