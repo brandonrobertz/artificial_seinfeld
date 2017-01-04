@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 from __future__ import print_function
-from hyperopt import fmin, tpe, hp, STATUS_OK, Trials
+from hyperopt import fmin, tpe, hp, STATUS_OK, STATUS_FAIL, Trials
 # import walker  # walker.py in the same folder
 import numpy as np
 import signal
@@ -16,7 +16,7 @@ from seinfeld_lstm import SeinfeldAI
 
 space = {
     'learning_rate': hp.loguniform('learning_rate', np.log(1e-5), np.log(0.5)),
-    'lstm_size': hp.quniform('lstm_size', 20, 1200, 1),
+    'lstm_size': hp.quniform('lstm_size', 20, 700, 1),
     'dropout': hp.uniform('dropout', 0.0, 0.9),
     'window': hp.quniform('window', 1, 200, 1),
     'epochs':  hp.quniform('epochs', 1, 10, 1)
@@ -43,14 +43,18 @@ def main(character):
     def objective(args):
         args['character'] = character
         args['path'] = 'seinfeld_lstm_corpus.{0}.txt'.format(character)
-        model = SeinfeldAI(**args)
-        tr_err = np.zeros(epochs)
-        ts_err = np.zeros(epochs)
-        for i in range(epochs):
-            training_loss, test_loss = model.run()
-            tr_err[i] = training_loss
-            ts_err[i] = test_loss
-        print("Train:", tr_err.mean(), "Test:", ts_err.mean(), "for", args)
+        try:
+            model = SeinfeldAI(**args)
+            tr_err = np.zeros(epochs)
+            ts_err = np.zeros(epochs)
+            for i in range(epochs):
+                training_loss, test_loss = model.run()
+                tr_err[i] = training_loss
+                ts_err[i] = test_loss
+            print("Train:", tr_err.mean(), "Test:", ts_err.mean(), "for", args)
+        except Exception, e:
+            print("Error running model", e)
+            return {'status': STATUS_FAIL}
         return {'loss': ts_err.mean(), 'status': STATUS_OK}
 
     for i in range(100):

@@ -9,7 +9,7 @@ from keras import backend as K
 # from keras.regularizers import l2
 import numpy as np
 # import random
-import sys
+# import sys
 from functools import reduce
 import cPickle as pickle
 # import os
