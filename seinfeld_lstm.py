@@ -69,22 +69,24 @@ class SeinfeldAI(object):
         joined = reduce(str.__add__, text)
         # <a> always terminates a question/answer series
         qas = map(lambda x: x + '<a>', joined.split('<a>'))
-        sentences = []
+        # TODO: shuffle qas
+        window_chunks = []
         next_chars = []
         for qa in qas:
             for i in range(0, len(qa) - self.window, self.text_step):
                 sentence = qa[i: i + self.window]
-                sentences.append(sentence)
+                window_chunks.append(sentence)
                 next_char = qa[i + self.window]
                 next_chars.append(next_char)
                 if debug:
                     print('sentence', sentence, 'next_char', next_char)
             if debug:
                 print()
-        X = np.zeros(
-            (len(sentences), self.window, len(self.chars)), dtype=np.bool)
-        y = np.zeros((len(sentences), len(self.chars)), dtype=np.bool)
-        for i, sentence in enumerate(sentences):
+        X_shape = (len(window_chunks), self.window, len(self.chars))
+        X = np.zeros(X_shape, dtype=np.bool)
+        y_shape = (len(window_chunks), len(self.chars))
+        y = np.zeros(y_shape, dtype=np.bool)
+        for i, sentence in enumerate(window_chunks):
             for t, char in enumerate(sentence):
                 X[i, t, self.char_indices[char]] = 1
             y[i, self.char_indices[next_chars[i]]] = 1
@@ -131,9 +133,11 @@ class SeinfeldAI(object):
         model.add(LSTM(
             self.lstm_size,
             input_shape=(self.window, len(self.chars)),
+            init='zero',
             dropout_W=self.dropout,
             dropout_U=self.dropout,
-            unroll=True
+            unroll=True,
+            consume_less='mem'
         ))
         model.add(Dense(len(self.chars)))
         # other options include relu
@@ -164,29 +168,40 @@ class SeinfeldAI(object):
     def output_from_seed(self, model, sentence):
         """ Take a seed sentence and generate some output from out LSTM
         """
+        sentence = sentence.lower()
+        if sentence[-3:] != '<q>':
+            sentence += '<q>'
+
+        # this will be the entire sentence vectorized, since we're not training
+        # we ignore the targets
+        X, y = self.vectorize_sentences(sentence)
+
+        # seed the network before we attempt to collect output
+        model.predict(X)
+        # print('Last supervised pred',
+        #       self.indices_char[self.sample(y[-1], 0.2)])
+
+        # this seeds the > in <q>
+        X, y = self.vectorize_sentences(sentence[-self.window:] + '>')
+        p = model.predict(X)
+        pred_char = self.indices_char[self.sample(p[0], 0.2)]
+
+        print('----- Generating with seed: "' + sentence + '"')
+
         for diversity in [0.2, 0.5, 1.0, 1.2]:
-            print()
-            print('----- diversity:', diversity)
+            print('-- diversity:', diversity)
 
             generated = ''
-            # let's only show the generated output, not mixed
-            # generated += sentence
-            print('----- Generating with seed: "' + sentence + '"')
-            print()
-            sys.stdout.write(generated)
-
             for i in range(60):
-                x = np.zeros((1, self.window, len(self.chars)))
-                for t, char in enumerate(sentence):
-                    x[0, t, self.char_indices[char]] = 1.
-                preds = model.predict(x)[0]
-                next_index = self.sample(preds, diversity)
-                next_char = self.indices_char[next_index]
-                generated += next_char
-                sentence = sentence[1:] + next_char
-                sys.stdout.write(next_char)
-                sys.stdout.flush()
-            print()
+                blank = np.zeros((1, self.window, len(self.chars)))
+                blank[0][-1][self.char_indices[pred_char]] = 1.0
+                X = np.vstack((X[1:], blank))
+                preds = model.predict(X)[0]
+                pred_ix = self.sample(preds, diversity)
+                pred_char = self.indices_char[pred_ix]
+                generated += pred_char
+
+            print(generated)
 
     def save_model(self, model):
         """ Write model to disk
@@ -195,7 +210,8 @@ class SeinfeldAI(object):
         name_pfx = 'models/model_{0}'.format(ts)
         modelname = name_pfx + '.h5'
         model.save(modelname)
-        with open(name_pfx + '.aux.p', 'w') as f:
+        auxname = name_pfx + '.aux.p'
+        with open(auxname, 'w') as f:
             pickle.dump({
                 'chars': self.chars,
                 'char_indices': self.char_indices,
@@ -214,6 +230,7 @@ class SeinfeldAI(object):
                     "write_model": self.write_model
                 }
             }, f)
+            print('Saved model to', modelname, '&', auxname)
 
     def load_model(self, model_h5_path):
         """ Build a model and load weights from disk
@@ -249,6 +266,7 @@ class SeinfeldAI(object):
         score = model.evaluate(
             X, y,
             batch_size=self.batch_size)
+        self.output_from_seed(model, 'hey jerry<q>')
         return score
 
     def run(self):
