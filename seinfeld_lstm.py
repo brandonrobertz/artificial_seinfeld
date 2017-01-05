@@ -59,22 +59,53 @@ class SeinfeldAI(object):
                 self.character
             ))
 
-    def vectorize_sentences(self, text, debug=False):
+    def vectorize_sentences(self, text, debug=False, answer=False):
         """ Strategy: instead of sliding a window across an entire
         corpus as one long string, we should slide a window forward
         starting with each sentence. when we hit the end of a response,
         we move the window to the start of the next question, filling
         the entire window.
+        PARAMS:
+            answer: (False) indicates this is not a training example, there is
+                no corresponding answer.
         """
         joined = reduce(str.__add__, text)
+        if debug:
+            print('joined', joined)
+
         # <a> always terminates a question/answer series
-        qas = map(lambda x: x + '<a>', joined.split('<a>'))
+        split_seq = '<a>'
+        if not answer:
+            split_seq = '<q>'
+        # split can leave a blank ste at end of array, filter them out
+        full_sentences = filter(lambda x: x, joined.split(split_seq))
+        # we need to restore all end sequences
+        qas = map(lambda x: x + split_seq, full_sentences)
+
+        if debug:
+            print('qas', qas)
         # TODO: shuffle qas
         window_chunks = []
         next_chars = []
         for qa in qas:
-            for i in range(0, len(qa) - self.window, self.text_step):
+            if debug:
+                print('qa', qa)
+            # if we have an input with length shorter than window, we
+            # need to treat this instance specially
+            end = len(qa) - self.window
+            if end < 0:
+                sentence = qa[:-1]
+                next_char = qa[-1]
+                window_chunks.append(sentence)
+                next_chars.append(next_char)
+                continue
+
+            # if we have more than a window-length input, iterate over
+            # the sentence, adding to the windowing scheme until the end
+            for i in range(0, end, self.text_step):
                 sentence = qa[i: i + self.window]
+                if debug:
+                    print('sentence', sentence)
                 window_chunks.append(sentence)
                 next_char = qa[i + self.window]
                 next_chars.append(next_char)
@@ -82,12 +113,17 @@ class SeinfeldAI(object):
                     print('sentence', sentence, 'next_char', next_char)
             if debug:
                 print()
+        if debug:
+            print('window_chunks', window_chunks)
+            print('next_chars', next_chars)
         X_shape = (len(window_chunks), self.window, len(self.chars))
         X = np.zeros(X_shape, dtype=np.bool)
         y_shape = (len(window_chunks), len(self.chars))
         y = np.zeros(y_shape, dtype=np.bool)
         for i, sentence in enumerate(window_chunks):
-            for t, char in enumerate(sentence):
+            # fill in reverse to accomodate shorter-than window texts
+            for t in reversed(range(len(sentence))):
+                char = sentence[t]
                 X[i, t, self.char_indices[char]] = 1
             y[i, self.char_indices[next_chars[i]]] = 1
         return X, y
@@ -171,20 +207,27 @@ class SeinfeldAI(object):
         sentence = sentence.lower()
         if sentence[-3:] != '<q>':
             sentence += '<q>'
+        print('sentence', sentence)
 
         # this will be the entire sentence vectorized, since we're not training
         # we ignore the targets
-        X, y = self.vectorize_sentences(sentence)
+        X, y = self.vectorize_sentences(sentence, debug=True, answer=False)
+        print('X', X.shape, 'y', y.shape)
 
         # seed the network before we attempt to collect output
-        model.predict(X)
+        for x in X:
+            model.predict(x)
         # print('Last supervised pred',
         #       self.indices_char[self.sample(y[-1], 0.2)])
 
         # this seeds the > in <q>
         X, y = self.vectorize_sentences(sentence[-self.window:] + '>')
         p = model.predict(X)
-        pred_char = self.indices_char[self.sample(p[0], 0.2)]
+        print('p', p)
+        pred_ix = self.char_indices[self.sample(p[0], 0.2)]
+        print('pred_ix', pred_ix)
+        pred_char = self.indices_char[pred_ix]
+        print('pred_char', pred_char)
 
         print('----- Generating with seed: "' + sentence + '"')
 
