@@ -42,6 +42,9 @@ class SeinfeldAI(object):
         self.chars = None
         self.char_indices = None
         self.indices_char = None
+        # these cannot be present in the corpus
+        self.end_q_seq = '|'
+        self.end_a_seq = '#'
         if debug:
             logmsg = 'lstm_size {0} epochs {1} batch_size {2} text_step {3} ' \
                 'learning_rate {4} window {5} dropout {6} activation {7} ' \
@@ -59,63 +62,98 @@ class SeinfeldAI(object):
                 self.character
             ))
 
-    def vectorize_sentences(self, text, debug=False, answer=False):
+    def vectorize_sentences(self, text, debug=False, has_answer=True):
         """ Strategy: instead of sliding a window across an entire
         corpus as one long string, we should slide a window forward
         starting with each sentence. when we hit the end of a response,
         we move the window to the start of the next question, filling
         the entire window.
         PARAMS:
-            answer: (False) indicates this is not a training example, there is
-                no corresponding answer.
+            answer: (default, True) indicated whether the text contains
+              answers (training examples) in addition to questions
         """
-        joined = reduce(str.__add__, text)
-        if debug:
-            print('joined', joined)
+        # <a> always terminates a question/answer series, if we have a q/a pair
+        # then we want to split the raw text corpus into chunks that contain
+        # both the <q> and the <a>, otherwise, just split on <q>
+        split_seq = self.end_a_seq
+        if not has_answer:
+            assert(text.count(self.end_q_seq) <= 1)
+            split_seq = self.end_q_seq
 
-        # <a> always terminates a question/answer series
-        split_seq = '<a>'
-        if not answer:
-            split_seq = '<q>'
         # split can leave a blank ste at end of array, filter them out
-        full_sentences = filter(lambda x: x, joined.split(split_seq))
-        # we need to restore all end sequences
+        full_sentences = filter(lambda x: x, text.split(split_seq))
+        # we need to restore all end sequences, stripped via split
         qas = map(lambda x: x + split_seq, full_sentences)
 
         if debug:
             print('qas', qas)
-        # TODO: shuffle qas
+
+        # TODO: shuffle qas or maybe do this higher up in the stack (split_data)?
         window_chunks = []
         next_chars = []
         for qa in qas:
             if debug:
                 print('qa', qa)
-            # if we have an input with length shorter than window, we
-            # need to treat this instance specially
-            end = len(qa) - self.window
-            if end < 0:
-                sentence = qa[:-1]
-                next_char = qa[-1]
-                window_chunks.append(sentence)
+
+            # step 1: check if question length is longer than window
+            question, answer = qa.split(self.end_q_seq)
+            question += self.end_q_seq
+
+            # step 1a: question > window: make chunks
+            #   the size of the window, starting at beginning, y being the next char,
+            #   until we get to the end of the question delimeter
+            if len(question) > self.window:
+                if debug:
+                    print('len(question) is > self.window')
+                for i in range(0, len(question) - self.window, self.text_step):
+                    window_chunk = question[i: i + self.window]
+                    window_chunks.append(window_chunk)
+                    next_char = question[i + self.window]
+                    next_chars.append(next_char)
+                    if debug:
+                        print(i, 'x', window_chunk, 'y', next_char)
+
+            # step 1b: question <= window: add a single chunk and continue, y will be
+            #   end of the question delim (>, currently)
+            else:
+                if debug:
+                    print('len(question> is <= self.window')
+                window_chunk = question[:-1]
+                window_chunks.append(window_chunk)
+                next_char = question[-1]
                 next_chars.append(next_char)
+
+            # step 2: if we're in answer=False mode, we're done with this qa pair
+            if not has_answer:
+                # this facilitates seeding for question answering directly.
+                # the strategy with this will be to seed on the entire returned
+                # set of vectors and, at the end of the array, the network is seeded
+                # (since has_answer=True only supports a single-question)
+                window_chunk = question[-1 * self.window:]
+                window_chunks.append(window_chunk)
+                if debug:
+                    print('No answer, continuing!')
                 continue
+
+            # step 3: now we need to continue to slide the window forward, starting
+            #   with y = first char of answer until end of answer
 
             # if we have more than a window-length input, iterate over
             # the sentence, adding to the windowing scheme until the end
-            for i in range(0, end, self.text_step):
-                sentence = qa[i: i + self.window]
-                if debug:
-                    print('sentence', sentence)
-                window_chunks.append(sentence)
+            start = len(question) - self.window
+            end = len(qa) - self.window
+            if debug:
+                print('start', start, 'end', end)
+            for i in range(start, end, self.text_step):
+                window_chunk = qa[i: i + self.window]
+                window_chunks.append(window_chunk)
                 next_char = qa[i + self.window]
                 next_chars.append(next_char)
                 if debug:
-                    print('sentence', sentence, 'next_char', next_char)
+                    print(i, 'x', window_chunk, 'y', next_char)
             if debug:
                 print()
-        if debug:
-            print('window_chunks', window_chunks)
-            print('next_chars', next_chars)
+
         X_shape = (len(window_chunks), self.window, len(self.chars))
         X = np.zeros(X_shape, dtype=np.bool)
         y_shape = (len(window_chunks), len(self.chars))
@@ -125,18 +163,47 @@ class SeinfeldAI(object):
             for t in reversed(range(len(sentence))):
                 char = sentence[t]
                 X[i, t, self.char_indices[char]] = 1
-            y[i, self.char_indices[next_chars[i]]] = 1
+            # only fill out y if we have answers to train on
+            if has_answer:
+                y[i, self.char_indices[next_chars[i]]] = 1
         return X, y
 
     def split_data(self, text):
         """ Split raw data into chunks: 30% validate, 10% test, 60% train.
-        Note that this does *not* split with respect to <q>/<a> or line break.
         """
-        X = np.array(list(text), dtype='|S1')
+        # remove blanks generated by split
+        text_split = filter(lambda x: x.strip(), text.split(self.end_a_seq))
+
+        # storage for splits
+        train = []
+        test = []
+        validate = []
+
+        # for keeping track of percentages
+        total_chars = len(text)
+        train_chars = 0
+        test_chars = 0
+        validate_chars = 0
+
+        # here we want to split the dataset into approximate percentage
+        # chunks, split on end-of-sequence markers (so the first/last
+        # sentences don't get split across sample sets
+        for t in text_split:
+            if train_chars < total_chars * 0.6:
+                train.append(t)
+                train_chars += len(t)
+            elif test_chars < total_chars * 0.1:
+                test.append(t)
+                test_chars += len(t)
+            else:
+                validate.append(t)
+                validate_chars += len(t)
+
+        train = (self.end_a_seq).join(train)
+        test = (self.end_a_seq).join(test)
+        validate = (self.end_a_seq).join(validate)
+
         # this will do an approximate split
-        v1, v2, v3, test, tr1, tr2, tr3, tr4, tr5, tr6 = np.array_split(X, 10)
-        validate = np.concatenate((v1, v2, v3))
-        train = np.concatenate((tr1, tr2, tr3, tr4, tr5, tr6))
         return validate, test, train
 
     def load_corpus(self, path):
@@ -205,40 +272,35 @@ class SeinfeldAI(object):
         """ Take a seed sentence and generate some output from out LSTM
         """
         sentence = sentence.lower()
-        if sentence[-3:] != '<q>':
-            sentence += '<q>'
-        print('sentence', sentence)
+        # make sure our input has a end of question delim
+        if sentence[-len(self.end_q_seq):] != self.end_q_seq:
+            sentence += self.end_q_seq
 
         # this will be the entire sentence vectorized, since we're not training
         # we ignore the targets
-        X, y = self.vectorize_sentences(sentence, debug=True, answer=False)
-        print('X', X.shape, 'y', y.shape)
+        print("OUTPUT -------------------------------------------------")
+        X, y = self.vectorize_sentences(sentence, has_answer=False)
 
-        # seed the network before we attempt to collect output
-        for x in X:
-            model.predict(x)
         # print('Last supervised pred',
         #       self.indices_char[self.sample(y[-1], 0.2)])
-
-        # this seeds the > in <q>
-        X, y = self.vectorize_sentences(sentence[-self.window:] + '>')
-        p = model.predict(X)
-        print('p', p)
-        pred_ix = self.char_indices[self.sample(p[0], 0.2)]
-        print('pred_ix', pred_ix)
-        pred_char = self.indices_char[pred_ix]
-        print('pred_char', pred_char)
 
         print('----- Generating with seed: "' + sentence + '"')
 
         for diversity in [0.2, 0.5, 1.0, 1.2]:
             print('-- diversity:', diversity)
 
-            generated = ''
-            for i in range(60):
-                blank = np.zeros((1, self.window, len(self.chars)))
-                blank[0][-1][self.char_indices[pred_char]] = 1.0
-                X = np.vstack((X[1:], blank))
+            # seed the network before we attempt to collect output
+            p = model.predict(X)
+            pred_ix = self.sample(p[-1], diversity)
+            pred_char = self.indices_char[pred_ix]
+
+            generated = pred_char
+            for i in range(50):
+                blank = np.zeros(len(self.chars))
+                last_X = np.reshape(X[-1], (1, self.window, len(self.chars)))
+                trimmed_X = last_X[:, 1:]
+                blank[pred_ix] = 1
+                X = np.append(trimmed_X[-1], blank).reshape(1, self.window, len(self.chars))
                 preds = model.predict(X)[0]
                 pred_ix = self.sample(preds, diversity)
                 pred_char = self.indices_char[pred_ix]
@@ -309,7 +371,7 @@ class SeinfeldAI(object):
         score = model.evaluate(
             X, y,
             batch_size=self.batch_size)
-        self.output_from_seed(model, 'hey jerry<q>')
+        self.output_from_seed(model, 'hey jerry')
         return score
 
     def run(self):
@@ -348,7 +410,7 @@ def five_models(**kwargs):
 
 
 if __name__ == "__main__":
-    five_models()
+    five_models(path="seinfeld_lstm_corpus.jerry.small.txt")
     # # this model returns nans for output
     # ai = SeinfeldAI(lstm_size=302,epochs=2,batch_size=128,text_step=1,
     #                 learning_rate=0.110421159239,window=188,

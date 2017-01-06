@@ -6,6 +6,9 @@ from __future__ import print_function
 import re
 import argparse
 
+end_q_sequence = '|'
+end_a_sequence = '#'
+
 
 def unescape(s):
     """Replace HTML jibberish with normal symbols."""
@@ -87,7 +90,7 @@ def args():
 
 
 # this is responsible for cleaning the scripts
-strip = "\.\.\.|\.\.|\s'|'\s|\"|\(.*[\)\'\:]|\n|\r|\d|\*.*\*|" + \
+strip = "\||#|\.\.\.|\.\.|\s'|'\s|\"|\(.*[\)\'\:]|\n|\r|\d|\*.*\*|" + \
     "[^A-Za-z\'\.\?\! ]"
 
 if __name__ == "__main__":
@@ -110,7 +113,10 @@ if __name__ == "__main__":
                     and len(line) > 15 \
                     and len(last_line) < 150 \
                     and len(last_line) > 15:
-                print("{0}<q>{1}<a>".format(
-                    last_line.lower(), line.lower()
+                print("{0}|{1}#".format(
+                    last_line.lower(),
+                    end_q_sequence,
+                    line.lower(),
+                    end_a_sequence
                 ))
             last_line = line
