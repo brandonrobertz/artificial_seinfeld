@@ -25,7 +25,7 @@ space = {
 }
 
 # trials = None
-trials = MongoTrials('mongo://localhost:1234/foo_db/jobs', exp_key='exp1')
+trials = MongoTrials('mongo://localhost:1234/foo_db/jobs', exp_key='exp2')
 
 
 def save_trials(character):

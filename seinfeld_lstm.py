@@ -142,9 +142,6 @@ class SeinfeldAI(object):
             # step 3: now we need to continue to slide the window forward, starting
             #   with y = first char of answer until end of answer
 
-            # if we have more than a window-length input, iterate over
-            # the sentence, adding to the windowing scheme until the end
-            start = len(question) - self.window
             end = len(qa) - self.window
             if debug:
                 print('start', start, 'end', end)
@@ -164,9 +161,11 @@ class SeinfeldAI(object):
         y = np.zeros(y_shape, dtype=np.bool)
         for i, sentence in enumerate(window_chunks):
             # fill in reverse to accomodate shorter-than window texts
+            n = -1
             for t in reversed(range(len(sentence))):
                 char = sentence[t]
-                X[i, t, self.char_indices[char]] = 1
+                X[i, n, self.char_indices[char]] = 1
+                n -= 1
             # only fill out y if we have answers to train on
             if has_answer:
                 y[i, self.char_indices[next_chars[i]]] = 1
