@@ -410,7 +410,7 @@ def five_models(**kwargs):
 
 
 if __name__ == "__main__":
-    five_models(path="seinfeld_lstm_corpus.jerry.small.txt")
+    five_models()
     # # this model returns nans for output
     # ai = SeinfeldAI(lstm_size=302,epochs=2,batch_size=128,text_step=1,
     #                 learning_rate=0.110421159239,window=188,
