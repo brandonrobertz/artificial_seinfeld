@@ -90,7 +90,7 @@ def args():
 
 
 # this is responsible for cleaning the scripts
-strip = "\||#|\.\.\.|\.\.|\s'|'\s|\"|\(.*[\)\'\:]|\n|\r|\d|\*.*\*|" + \
+strip = "\.\.\.|\.\.|\s'|'\s|\"|\(.*[\)\'\:]|\n|\r|\d|\*.*\*|" + \
     "[^A-Za-z\'\.\?\! ]"
 
 if __name__ == "__main__":
@@ -113,7 +113,7 @@ if __name__ == "__main__":
                     and len(line) > 15 \
                     and len(last_line) < 150 \
                     and len(last_line) > 15:
-                print("{0}|{1}#".format(
+                print("{0}{1}{2}{3}".format(
                     last_line.lower(),
                     end_q_sequence,
                     line.lower(),
