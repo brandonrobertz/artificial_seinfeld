@@ -25,3 +25,6 @@ clean:
 	rm seinfeld_lstm_corpus.txt
 	rm *.p
 	rm *.h5
+
+mongo:
+	./mongodb-linux-x86_64-3.4.1/bin/mongod --dbpath ./db/ --port 1234

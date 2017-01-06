@@ -141,7 +141,7 @@ class SeinfeldAI(object):
 
             # step 3: now we need to continue to slide the window forward, starting
             #   with y = first char of answer until end of answer
-
+            start = len(question) - self.window
             end = len(qa) - self.window
             if debug:
                 print('start', start, 'end', end)
