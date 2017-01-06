@@ -1,6 +1,7 @@
 #!/usr/bin/env python2.7
 from __future__ import print_function
 from hyperopt import fmin, tpe, hp, STATUS_OK, STATUS_FAIL, Trials
+from hyperopt.mongoexp import MongoTrials
 # import walker  # walker.py in the same folder
 import numpy as np
 import signal
@@ -17,12 +18,14 @@ from seinfeld_lstm import SeinfeldAI
 space = {
     'learning_rate': hp.loguniform('learning_rate', np.log(1e-5), np.log(0.5)),
     'lstm_size': hp.quniform('lstm_size', 20, 700, 1),
-    'dropout': hp.uniform('dropout', 0.0, 0.9),
+    'dropout_W': hp.uniform('dropout_W', 0.0, 0.9),
+    'dropout_U': hp.uniform('dropout_U', 0.0, 0.9),
     'window': hp.quniform('window', 1, 200, 1),
     'epochs':  hp.quniform('epochs', 1, 10, 1)
 }
 
-trials = None
+# trials = None
+trials = MongoTrials('mongo://localhost:1234/foo_db/jobs', exp_key='exp1')
 
 
 def save_trials(character):

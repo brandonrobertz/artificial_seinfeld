@@ -24,14 +24,16 @@ class SeinfeldAI(object):
     """
 
     def __init__(self, lstm_size=200, epochs=1, batch_size=128,
-                 learning_rate=0.01, dropout=0.1, activation='softmax',
+                 learning_rate=0.01, dropout_W=0.1, dropout_U=0.1,
+                 activation='softmax',
                  text_step=1, window=40, path='seinfeld_lstm_corpus.jerry.txt',
                  debug=True, character='jerry', write_model=True):
         self.lstm_size = int(lstm_size)
         self.epochs = int(epochs)
         self.batch_size = int(batch_size)
         self.learning_rate = learning_rate
-        self.dropout = dropout
+        self.dropout_W = dropout_W
+        self.dropout_U = dropout_U
         self.activation = activation
         self.text_step = int(text_step)
         self.window = int(window)
@@ -47,8 +49,9 @@ class SeinfeldAI(object):
         self.end_a_seq = '#'
         if debug:
             logmsg = 'lstm_size {0} epochs {1} batch_size {2} text_step {3} ' \
-                'learning_rate {4} window {5} dropout {6} activation {7} ' \
-                'path {8} CHARACTER {9}'
+                'learning_rate {4} window {5} dropout_W {6} U {7} ' \
+                'activation {8} ' \
+                'path {9} CHARACTER {10}'
             print(logmsg.format(
                 self.lstm_size,
                 self.epochs,
@@ -56,7 +59,8 @@ class SeinfeldAI(object):
                 self.text_step,
                 self.learning_rate,
                 self.window,
-                self.dropout,
+                self.dropout_W,
+                self.dropout_U,
                 self.activation,
                 self.path,
                 self.character
@@ -237,10 +241,8 @@ class SeinfeldAI(object):
             self.lstm_size,
             input_shape=(self.window, len(self.chars)),
             init='zero',
-            dropout_W=self.dropout,
-            dropout_U=self.dropout,
-            unroll=True,
-            consume_less='mem'
+            dropout_W=self.dropout_W,
+            dropout_U=self.dropout_U
         ))
         model.add(Dense(len(self.chars)))
         # other options include relu
@@ -326,7 +328,8 @@ class SeinfeldAI(object):
                     "epochs": self.epochs,
                     "batch_size": self.batch_size,
                     "learning_rate": self.learning_rate,
-                    "dropout": self.dropout,
+                    "dropout_W": self.dropout_W,
+                    "dropout_U": self.dropout_U,
                     "activation": self.activation,
                     "text_step": self.text_step,
                     "window": self.window,
@@ -350,7 +353,8 @@ class SeinfeldAI(object):
             self.epochs = aux["model_params"]["epochs"]
             self.batch_size = aux["model_params"]["batch_size"]
             self.learning_rate = aux["model_params"]["learning_rate"]
-            self.dropout = aux["model_params"]["dropout"]
+            self.dropout_W = aux["model_params"]["dropout_W"]
+            self.dropout_U = aux["model_params"]["dropout_U"]
             self.activation = aux["model_params"]["activation"]
             self.text_step = aux["model_params"]["text_step"]
             self.window = aux["model_params"]["window"]
