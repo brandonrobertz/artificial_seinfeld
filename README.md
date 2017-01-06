@@ -3,8 +3,8 @@
 With new episodes of Seinfeld extremely unlikely, how can we combat the
 prospect of watching syndicated episodes for the rest of our lives? Sit
 quietly, watching all 180 episodes 'til death? I think not. If Seinfeld won't
-make new episodes, we'll have to do it ourselves -- with the help of some AI,
-of course.
+make new episodes, we'll have to do it ourselves -- but we'll definitely need
+some AI to do the actual writing. Nobody wants to do that much work.
 
 This repository is an exploration of this idea and contains some tools to:
 
@@ -14,9 +14,10 @@ This repository is an exploration of this idea and contains some tools to:
 4.  Generate your own Seinfeld scripts
 
 I'm not giving up hope that NBC will pay me [$100 million to produce another
-season of Seinfeld](http://www.foxnews.com/entertainment/2012/05/29/qa-former-nbc-honcho-offered-jerry-seinfeld-over-100-million-for-one-more.html)
-yet. But even if they don't, this is a good way to explore character-based
-language modeling and the outer fringes of Fair Use Copyright Law.
+season of Seinfeld](http://www.foxnews.com/entertainment/2012/05/29/qa-former-nbc-honcho-offered-jerry-seinfeld-over-100-million-for-one-more.html). Or maybe they'll go the other
+way, fail to see humor in this very complex joke. Either way,
+this is a good way to explore character-based language modeling and the outer
+fringes of Fair Use Copyright Law.
 
 ## How it works
 
