@@ -84,7 +84,8 @@ def args():
     parser.add_argument('script', type=str,
                         help='Seinology SHTML transcript file')
     parser.add_argument('--character', default='jerry',
-                        help='Seinfeld script character to pull responses for')
+                        help='Seinfeld script character to pull responses ' \
+                        'or "all" for all character dialogue.')
     args = parser.parse_args()
     return args.script, args.character
 
@@ -108,7 +109,7 @@ if __name__ == "__main__":
             if last_line is None:
                 last_line = line
                 continue
-            if speaker == character \
+            if character == "all" or speaker == character \
                     and len(line) < 150 \
                     and len(line) > 15 \
                     and len(last_line) < 150 \

@@ -14,6 +14,7 @@ from functools import reduce
 import cPickle as pickle
 # import os
 import time
+import settings
 
 # disable verbose logging
 K.tf.logging.set_verbosity(K.tf.logging.ERROR)
@@ -45,8 +46,8 @@ class SeinfeldAI(object):
         self.char_indices = None
         self.indices_char = None
         # these cannot be present in the corpus
-        self.end_q_seq = '|'
-        self.end_a_seq = '#'
+        self.end_q_seq = settings.END_Q_SEQ  # '|'
+        self.end_a_seq = settings.END_A_SEQ  # '#'
         if debug:
             logmsg = 'lstm_size {0} epochs {1} batch_size {2} text_step {3} ' \
                 'learning_rate {4} window {5} dropout_W {6} U {7} ' \
@@ -309,11 +310,11 @@ class SeinfeldAI(object):
 
             print(generated)
 
-    def save_model(self, model):
+    def save_model(self, model, prefix):
         """ Write model to disk
         """
         ts = int(time.time())
-        name_pfx = 'models/model_{0}'.format(ts)
+        name_pfx = 'models/model_{0}_{1}'.format(self.character, prefix)
         modelname = name_pfx + '.h5'
         model.save(modelname)
         auxname = name_pfx + '.aux.p'
@@ -384,16 +385,9 @@ class SeinfeldAI(object):
         model = self.build_model()
         history = self.train(model, tr_X, tr_y)
         training_loss = history.history['loss'][-1]
-        # print('# RESULTS')
-        # print("~ train_score", training_loss)
-        # # sentence = "hey. where's the car?<q>"
-        # # # start_index = random.randint(0, len(text) - maxlen - 1)
-        # # # sentence = text[start_index: start_index + maxlen]
-        # # output_from_seed(model, sentence, char_indices, indices_char, chars)
         test_loss = self.test_model(model, ts_X, ts_y)
-        # print('~ test_score', test_loss)
         if self.write_model:
-            self.save_model(model)
+            self.save_model(model, test_loss)
         return training_loss, test_loss
 
 
@@ -414,9 +408,4 @@ def five_models(**kwargs):
 
 if __name__ == "__main__":
     five_models()
-    # # this model returns nans for output
-    # ai = SeinfeldAI(lstm_size=302,epochs=2,batch_size=128,text_step=1,
-    #                 learning_rate=0.110421159239,window=188,
-    #                 dropout=0.892325476646,
-    #                 path='seinfeld_lstm_corpus.jerry.txt')
-    # ai.run()
+

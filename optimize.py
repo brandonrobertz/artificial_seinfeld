@@ -9,6 +9,8 @@ import sys
 import pickle
 import os
 
+import settings
+
 # this needs to go before keras loads to disable annoying verbose logs
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # noqa
 
@@ -22,6 +24,7 @@ space = {
     'dropout_U': hp.uniform('dropout_U', 0.0, 0.9),
     'window': hp.quniform('window', 1, 200, 1),
     'epochs':  hp.quniform('epochs', 1, 10, 1)
+    # 'activation': hp.choice('activation', ['softmax', 'relu', 'tanh'])
 }
 
 # trials = None

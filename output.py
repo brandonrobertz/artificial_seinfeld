@@ -2,6 +2,8 @@
 from seinfeld_lstm import SeinfeldAI
 import sys
 
+import settings
+
 
 def usage():
     print('USAGE: output.py path/to/model.h5')
@@ -13,5 +15,5 @@ if __name__ == "__main__":
 
     s = SeinfeldAI()
     model = s.load_model(sys.argv[1])
-    s.output_from_seed(model, 'hello jerry<q>')
-    s.output_from_seed(model, 'george you\'re a dick<q>')
+    s.output_from_seed(model, 'hello jerry' + settings.END_Q_SEQ)
+    s.output_from_seed(model, 'george you\'re a dick'  + settings.END_Q_SEQ)
