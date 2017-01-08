@@ -28,7 +28,7 @@ space = {
 }
 
 # trials = None
-trials = MongoTrials('mongo://localhost:1234/foo_db/jobs', exp_key='exp2')
+trials = None
 
 
 def save_trials(character):
@@ -90,8 +90,26 @@ def signal_handler(signal, frame):
 signal.signal(signal.SIGINT, signal_handler)
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print("USAGE ./optimize.py SEINFELD_CHARACTER")
+    if len(sys.argv) <= 2:
+        print("USAGE ./optimize.py CHARACTER [mongo_host:port] [mogo_db]")
+        print("    CHARACTER - must be the name of a character with spoken"
+        print("      line in the source transcripts")
+        print("    mongo_host:port - host:port of mongo instance for parallel"
+        print("      searches. if omitted, optimize will run in standalone")
+        print("      search mode")
+        print("    mongo_db will default to seinfeld_db if blank")
         sys.exit(1)
+
     character = sys.argv[1]
+
+    if len(sys.argv) >= 3:
+        mongo_host = sys.argv[2]
+        mongo_db = sys.argv[3] if len(sys.argv) == 4 else 'seinfeld_db'
+        mongo_connect = 'mongo://{0}/{1}/jobs'.format(mongo_host, mongo_db)
+        print("Setting up distributed search on mongo instance {0}/{1}".format(
+            mongo_host, mongo_db))
+        trials = MongoTrials(mongo_connect)
+    else:
+        print("Using standalone (single-machine) search mode")
+
     main(character)

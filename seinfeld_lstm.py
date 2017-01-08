@@ -1,18 +1,13 @@
 #!/usr/bin/env python2.7
 from __future__ import print_function
-from keras.models import Sequential  # , load_model
-from keras.layers import Dense, Activation  # , Dropout
+from keras.models import Sequential
+from keras.layers import Dense, Activation
 from keras.layers import LSTM
 from keras.optimizers import RMSprop
 from keras import backend as K
-# from keras.utils.data_utils import get_file
-# from keras.regularizers import l2
 import numpy as np
-# import random
-# import sys
 from functools import reduce
 import cPickle as pickle
-# import os
 import time
 import settings
 
@@ -41,6 +36,8 @@ class SeinfeldAI(object):
         self.path = path
         self.character = character
         self.write_model = write_model
+        # this needs to be loaded or built
+        self.model = None
         # these need to be hydrated via vectorization or load_model
         self.chars = None
         self.char_indices = None
@@ -220,8 +217,6 @@ class SeinfeldAI(object):
 
         self.char_indices = dict((c, i) for i, c in enumerate(self.chars))
         self.indices_char = dict((i, c) for i, c in enumerate(self.chars))
-        # print('char_indices', char_indices)
-        # print('indices_char', indices_char)
 
         validate, test, train = self.split_data(text)
         val_X, val_y = self.vectorize_sentences(validate)
@@ -233,28 +228,25 @@ class SeinfeldAI(object):
         """ Build our model. This can then be used to train or load weights, etc.
         Model is built using the constants at the top of the file.
         """
-        # build the model: a single LSTM
-        # print('Build model...')
-        model = Sequential()
+        self.model = Sequential()
         # dropout breaks symmetry on zero-init weights
-        model.add(LSTM(
+        self.model.add(LSTM(
             self.lstm_size,
             input_shape=(self.window, len(self.chars)),
             init='zero',
             dropout_W=self.dropout_W,
             dropout_U=self.dropout_U
         ))
-        model.add(Dense(len(self.chars)))
-        # other options include relu
-        model.add(Activation(self.activation))
+        self.model.add(Dense(len(self.chars)))
+        # other options include relu, tanh
+        self.model.add(Activation(self.activation))
         optimizer = RMSprop(lr=self.learning_rate)
-        model.compile(loss='categorical_crossentropy', optimizer=optimizer)
-        return model
+        self.model.compile(loss='categorical_crossentropy', optimizer=optimizer)
 
-    def train(self, model, X, y):
+    def train(self, X, y):
         """ Train our model for epochs, returning accuracy history
         """
-        return model.fit(
+        return self.model.fit(
             X, y,
             batch_size=self.batch_size,
             nb_epoch=self.epochs)
@@ -270,7 +262,7 @@ class SeinfeldAI(object):
         probas = np.random.multinomial(1, preds, 1)
         return np.argmax(probas)
 
-    def output_from_seed(self, model, sentence):
+    def output_from_seed(self, sentence):
         """ Take a seed sentence and generate some output from out LSTM
         """
         sentence = sentence.lower()
@@ -283,16 +275,13 @@ class SeinfeldAI(object):
         print("OUTPUT -------------------------------------------------")
         X, y = self.vectorize_sentences(sentence, has_answer=False)
 
-        # print('Last supervised pred',
-        #       self.indices_char[self.sample(y[-1], 0.2)])
-
         print('----- Generating with seed: "' + sentence + '"')
 
         for diversity in [0.2, 0.5, 1.0, 1.2]:
             print('-- diversity:', diversity)
 
             # seed the network before we attempt to collect output
-            p = model.predict(X)
+            p = self.model.predict(X)
             pred_ix = self.sample(p[-1], diversity)
             pred_char = self.indices_char[pred_ix]
 
@@ -303,20 +292,20 @@ class SeinfeldAI(object):
                 trimmed_X = last_X[:, 1:]
                 blank[pred_ix] = 1
                 X = np.append(trimmed_X[-1], blank).reshape(1, self.window, len(self.chars))
-                preds = model.predict(X)[0]
+                preds = self.model.predict(X)[0]
                 pred_ix = self.sample(preds, diversity)
                 pred_char = self.indices_char[pred_ix]
                 generated += pred_char
 
             print(generated)
 
-    def save_model(self, model, prefix):
+    def save_model(self, prefix):
         """ Write model to disk
         """
         ts = int(time.time())
         name_pfx = 'models/model_{0}_{1}'.format(self.character, prefix)
         modelname = name_pfx + '.h5'
-        model.save(modelname)
+        self.model.save(modelname)
         auxname = name_pfx + '.aux.p'
         with open(auxname, 'w') as f:
             pickle.dump({
@@ -361,33 +350,31 @@ class SeinfeldAI(object):
             self.path = aux["model_params"]["path"]
             self.character = aux["model_params"]["character"]
             self.write_model = aux["model_params"]["write_model"]
-        model = self.build_model()
-        model.load_weights(model_h5_path)
-        # model = load_model(model_path)
-        return model
+        self.build_model()
+        self.model.load_weights(model_h5_path)
 
-    def test_model(self, model, X, y):
+    def test_model(self, X, y):
         """ Take a set of inputs and test our trained LSTM, returning loss
         """
-        p = model.predict(X)
+        p = self.model.predict(X)
         if np.isnan(p).any():
             return 100
-        score = model.evaluate(
+        score = self.model.evaluate(
             X, y,
             batch_size=self.batch_size)
-        self.output_from_seed(model, 'hey jerry')
+        self.output_from_seed('hey jerry')
         return score
 
     def run(self):
         """ Generate, train and test a model, returning train, test loss
         """
         val_X, val_y, ts_X, ts_y, tr_X, tr_y, = self.load_corpus(self.path)
-        model = self.build_model()
-        history = self.train(model, tr_X, tr_y)
+        self.build_model()
+        history = self.train(tr_X, tr_y)
         training_loss = history.history['loss'][-1]
-        test_loss = self.test_model(model, ts_X, ts_y)
+        test_loss = self.test_model(ts_X, ts_y)
         if self.write_model:
-            self.save_model(model, test_loss)
+            self.save_model(test_loss)
         return training_loss, test_loss
 
 
@@ -408,4 +395,3 @@ def five_models(**kwargs):
 
 if __name__ == "__main__":
     five_models()
-

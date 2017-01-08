@@ -1,7 +1,6 @@
 #!/usr/bin/env python2.7
 from seinfeld_lstm import SeinfeldAI
 import sys
-
 import settings
 
 
@@ -13,7 +12,7 @@ if __name__ == "__main__":
     if len(sys.argv) != 2:
         usage()
 
-    s = SeinfeldAI()
-    model = s.load_model(sys.argv[1])
-    s.output_from_seed(model, 'hello jerry' + settings.END_Q_SEQ)
-    s.output_from_seed(model, 'george you\'re a dick'  + settings.END_Q_SEQ)
+    jerry = SeinfeldAI(character="jerry")
+    jerry.load_model(sys.argv[1])
+    jerry.output_from_seed('hello jerry' + settings.END_Q_SEQ)
+    jerry.output_from_seed('george you\'re a dick'  + settings.END_Q_SEQ)

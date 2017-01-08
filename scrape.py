@@ -96,28 +96,29 @@ strip = "\.\.\.|\.\.|\s'|'\s|\"|\(.*[\)\'\:]|\n|\r|\d|\*.*\*|" + \
 
 if __name__ == "__main__":
     path, character = args()
-    with open(path) as file:
-        info, utterances = scrape_episode(file.read())
-        last_line = None
-        for utterance in utterances:
-            speaker = utterance[0].lower().strip()
-            line = re.sub(
-                "\s{2,}",
-                " ",
-                re.sub(strip, " ", utterance[1])
-            ).lower().strip()
-            if last_line is None:
-                last_line = line
-                continue
-            if character == "all" or speaker == character \
-                    and len(line) < 150 \
-                    and len(line) > 15 \
-                    and len(last_line) < 150 \
-                    and len(last_line) > 15:
-                print("{0}{1}{2}{3}".format(
-                    last_line.lower(),
-                    end_q_sequence,
-                    line.lower(),
-                    end_a_sequence
-                ))
+    file = open(path)
+    info, utterances = scrape_episode(file.read())
+    last_line = None
+    for utterance in utterances:
+        speaker = utterance[0].lower().strip()
+        line = re.sub(
+            "\s{2,}",
+            " ",
+            re.sub(strip, " ", utterance[1])
+        ).lower().strip()
+        if last_line is None:
             last_line = line
+            continue
+        if character == "all" or speaker == character \
+                and len(line) < 150 \
+                and len(line) > 15 \
+                and len(last_line) < 150 \
+                and len(last_line) > 15:
+            print("{0}{1}{2}{3}".format(
+                last_line.lower(),
+                end_q_sequence,
+                line.lower(),
+                end_a_sequence
+            ))
+        last_line = line
+    file.close()
