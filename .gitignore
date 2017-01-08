@@ -13,3 +13,4 @@ tensorflow
 db/
 mongodb-linux-x86_64-3.4.1/
 *.tgz
+models/*
