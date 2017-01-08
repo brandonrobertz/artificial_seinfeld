@@ -1,4 +1,6 @@
 CHARACTER=jerry
+MONGOHOST=
+MONGODB=
 
 default: install_deps scripts corpus optimize
 
@@ -17,7 +19,7 @@ train:
 	python seinfeld_lstm.py
 
 optimize:
-	python optimize.py ${CHARACTER}
+	python optimize.py ${CHARACTER} ${MONGOHOST} ${MONGODB}
 
 clean:
 	find ./ -iname "*.pyc" -delete

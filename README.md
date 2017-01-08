@@ -90,6 +90,9 @@ The makefile contains the following commands:
                               make corpus CHARACTER=kramer
     make train .......... train LSTM model using default params
     make optimize ....... perform optimal hyperparameter search
+                          this accepts MONGOHOST=localhost:1234 and
+                          MONGODB=seinfeld_job after make optimize
+                          to enable distributed searches
     make clean .......... delete all models, scripts, corpus, etc
 
 # An Open Letter to Jerry Seinfeld
