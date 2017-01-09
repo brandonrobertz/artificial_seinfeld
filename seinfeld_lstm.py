@@ -245,7 +245,7 @@ class SeinfeldAI(object):
         return np.argmax(probas)
 
     def output_from_seed(self, sentence, max_chars=140, output_until=None,
-                         temperature=0.2):
+                         temperature=settings.TEMPERATURE):
         """ Take a seed sentence and generate some output from out LSTM. Output either max_chars
         and (optionally) output until character is output (most likely you'll want to use end-of-answer sequence).
         """
