@@ -262,10 +262,14 @@ class SeinfeldAI(object):
         probas = np.random.multinomial(1, preds, 1)
         return np.argmax(probas)
 
-    def output_from_seed(self, sentence):
-        """ Take a seed sentence and generate some output from out LSTM
+    def output_from_seed(self, sentence, max_chars=140, output_until=None, temperature=0.2):
+        """ Take a seed sentence and generate some output from out LSTM. Output either max_chars
+        and (optionally) output until character is output (most likely you'll want to use end-of-answer sequence).
         """
+        # check for & strip non self.chars characters
         sentence = sentence.lower()
+	output_until = output_until or self.end_a_seq
+
         # make sure our input has a end of question delim
         if sentence[-len(self.end_q_seq):] != self.end_q_seq:
             sentence += self.end_q_seq
@@ -273,31 +277,35 @@ class SeinfeldAI(object):
         # this will be the entire sentence vectorized, since we're not training
         # we ignore the targets
         print("OUTPUT -------------------------------------------------")
-        X, y = self.vectorize_sentences(sentence, has_answer=False)
 
         print('----- Generating with seed: "' + sentence + '"')
 
-        for diversity in [0.2, 0.5, 1.0, 1.2]:
-            print('-- diversity:', diversity)
+        # for diversity in [0.2, 0.5, 1.0, 1.2]:
+        #     print('-- diversity:', diversity)
 
-            # seed the network before we attempt to collect output
-            p = self.model.predict(X)
-            pred_ix = self.sample(p[-1], diversity)
+        # seed the network before we attempt to collect output
+        X, y = self.vectorize_sentences(sentence, has_answer=False)
+        p = self.model.predict(X)
+        pred_ix = self.sample(p[-1], temperature)
+        pred_char = self.indices_char[pred_ix]
+
+        # store generated chars here, this is first output
+        generated = pred_char
+
+        for i in range(max_chars):
+            if output_until is not None and output_until in generated:
+                break
+            blank = np.zeros(len(self.chars))
+            last_X = np.reshape(X[-1], (1, self.window, len(self.chars)))
+            trimmed_X = last_X[:, 1:]
+            blank[pred_ix] = 1
+            X = np.append(trimmed_X[-1], blank).reshape(1, self.window, len(self.chars))
+            preds = self.model.predict(X)[0]
+            pred_ix = self.sample(preds, temperature)
             pred_char = self.indices_char[pred_ix]
+            generated += pred_char
 
-            generated = pred_char
-            for i in range(50):
-                blank = np.zeros(len(self.chars))
-                last_X = np.reshape(X[-1], (1, self.window, len(self.chars)))
-                trimmed_X = last_X[:, 1:]
-                blank[pred_ix] = 1
-                X = np.append(trimmed_X[-1], blank).reshape(1, self.window, len(self.chars))
-                preds = self.model.predict(X)[0]
-                pred_ix = self.sample(preds, diversity)
-                pred_char = self.indices_char[pred_ix]
-                generated += pred_char
-
-            print(generated)
+        print(generated)
 
     def save_model(self, prefix):
         """ Write model to disk
