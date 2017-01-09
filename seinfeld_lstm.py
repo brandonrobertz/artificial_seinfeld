@@ -250,12 +250,17 @@ class SeinfeldAI(object):
         and (optionally) output until character is output (most likely you'll want to use end-of-answer sequence).
         """
         # check for & strip non self.chars characters
-        sentence = sentence.lower()
+        raw_sentence = sentence.lower()
         output_until = output_until or self.end_a_seq
 
         # make sure our input has a end of question delim
-        if sentence[-len(self.end_q_seq):] != self.end_q_seq:
-            sentence += self.end_q_seq
+        if raw_sentence[-len(self.end_q_seq):] != self.end_q_seq:
+            raw_sentence += self.end_q_seq
+
+        sentence = ''
+        for c in raw_sentence:
+            if c in self.chars:
+                sentence += c
 
         # this will be the entire sentence vectorized, since we're not training
         # we ignore the targets

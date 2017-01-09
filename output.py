@@ -5,18 +5,17 @@ import settings
 
 
 def usage():
-    print('USAGE: output.py path/to/model.h5 charname')
+    print('USAGE: output.py path/to/model.h5')
     print('  this reads input from stdin by default')
     sys.exit(1)
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 2:
         usage()
 
     h5_path = sys.argv[1]
-    character = sys.argv[2]
 
-    model = SeinfeldAI(character=character)
+    model = SeinfeldAI()
     model.load_model(h5_path)
 
     for line in sys.stdin:
