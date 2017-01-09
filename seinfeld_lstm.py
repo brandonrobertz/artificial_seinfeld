@@ -45,7 +45,8 @@ class SeinfeldAI(object):
         # these cannot be present in the corpus
         self.end_q_seq = settings.END_Q_SEQ  # '|'
         self.end_a_seq = settings.END_A_SEQ  # '#'
-        if debug:
+	self.debug = debug
+        if self.debug:
             logmsg = 'lstm_size {0} epochs {1} batch_size {2} text_step {3} ' \
                 'learning_rate {4} window {5} dropout_W {6} U {7} ' \
                 'activation {8} ' \
@@ -87,15 +88,10 @@ class SeinfeldAI(object):
         # we need to restore all end sequences, stripped via split
         qas = map(lambda x: x + split_seq, full_sentences)
 
-        if debug:
-            print('qas', qas)
-
         # TODO: shuffle qas or maybe do this higher up in the stack (split_data)?
         window_chunks = []
         next_chars = []
         for qa in qas:
-            if debug:
-                print('qa', qa)
 
             # step 1: check if question length is longer than window
             question, answer = qa.split(self.end_q_seq)
@@ -105,21 +101,15 @@ class SeinfeldAI(object):
             #   the size of the window, starting at beginning, y being the next char,
             #   until we get to the end of the question delimeter
             if len(question) > self.window:
-                if debug:
-                    print('len(question) is > self.window')
                 for i in range(0, len(question) - self.window, self.text_step):
                     window_chunk = question[i: i + self.window]
                     window_chunks.append(window_chunk)
                     next_char = question[i + self.window]
                     next_chars.append(next_char)
-                    if debug:
-                        print(i, 'x', window_chunk, 'y', next_char)
 
             # step 1b: question <= window: add a single chunk and continue, y will be
             #   end of the question delim (>, currently)
             else:
-                if debug:
-                    print('len(question> is <= self.window')
                 window_chunk = question[:-1]
                 window_chunks.append(window_chunk)
                 next_char = question[-1]
@@ -133,25 +123,17 @@ class SeinfeldAI(object):
                 # (since has_answer=True only supports a single-question)
                 window_chunk = question[-1 * self.window:]
                 window_chunks.append(window_chunk)
-                if debug:
-                    print('No answer, continuing!')
                 continue
 
             # step 3: now we need to continue to slide the window forward, starting
             #   with y = first char of answer until end of answer
             start = len(question) - self.window
             end = len(qa) - self.window
-            if debug:
-                print('start', start, 'end', end)
             for i in range(start, end, self.text_step):
                 window_chunk = qa[i: i + self.window]
                 window_chunks.append(window_chunk)
                 next_char = qa[i + self.window]
                 next_chars.append(next_char)
-                if debug:
-                    print(i, 'x', window_chunk, 'y', next_char)
-            if debug:
-                print()
 
         X_shape = (len(window_chunks), self.window, len(self.chars))
         X = np.zeros(X_shape, dtype=np.bool)
@@ -263,7 +245,7 @@ class SeinfeldAI(object):
         return np.argmax(probas)
 
     def output_from_seed(self, sentence, max_chars=140, output_until=None,
-                         temperature=0.2, debug=False):
+                         temperature=0.2):
         """ Take a seed sentence and generate some output from out LSTM. Output either max_chars
         and (optionally) output until character is output (most likely you'll want to use end-of-answer sequence).
         """
