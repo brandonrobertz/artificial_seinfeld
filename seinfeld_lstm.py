@@ -23,7 +23,7 @@ class SeinfeldAI(object):
                  learning_rate=0.01, dropout_W=0.1, dropout_U=0.1,
                  activation='softmax',
                  text_step=1, window=40, path='seinfeld_lstm_corpus.jerry.txt',
-                 debug=True, character='jerry', write_model=True):
+                 debug=False, character='jerry', write_model=True):
         self.lstm_size = int(lstm_size)
         self.epochs = int(epochs)
         self.batch_size = int(batch_size)
@@ -262,13 +262,14 @@ class SeinfeldAI(object):
         probas = np.random.multinomial(1, preds, 1)
         return np.argmax(probas)
 
-    def output_from_seed(self, sentence, max_chars=140, output_until=None, temperature=0.2):
+    def output_from_seed(self, sentence, max_chars=140, output_until=None,
+                         temperature=0.2, debug=False):
         """ Take a seed sentence and generate some output from out LSTM. Output either max_chars
         and (optionally) output until character is output (most likely you'll want to use end-of-answer sequence).
         """
         # check for & strip non self.chars characters
         sentence = sentence.lower()
-	output_until = output_until or self.end_a_seq
+        output_until = output_until or self.end_a_seq
 
         # make sure our input has a end of question delim
         if sentence[-len(self.end_q_seq):] != self.end_q_seq:
@@ -276,9 +277,9 @@ class SeinfeldAI(object):
 
         # this will be the entire sentence vectorized, since we're not training
         # we ignore the targets
-        print("OUTPUT -------------------------------------------------")
-
-        print('----- Generating with seed: "' + sentence + '"')
+        if self.debug:
+            print("OUTPUT -------------------------------------------------")
+            print('Generating with seed: "' + sentence + '"')
 
         # for diversity in [0.2, 0.5, 1.0, 1.2]:
         #     print('-- diversity:', diversity)
@@ -335,7 +336,8 @@ class SeinfeldAI(object):
                     "write_model": self.write_model
                 }
             }, f)
-            print('Saved model to', modelname, '&', auxname)
+            if self.debug:
+                print('Saved model to', modelname, '&', auxname)
 
     def load_model(self, model_h5_path):
         """ Build a model and load weights from disk
