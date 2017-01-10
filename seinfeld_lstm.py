@@ -4,6 +4,7 @@ from keras.models import Sequential
 from keras.layers import Dense, Activation
 from keras.layers import LSTM
 from keras.optimizers import RMSprop
+from keras.callbacks import Callback
 from keras import backend as K
 import numpy as np
 from functools import reduce
@@ -14,6 +15,20 @@ import settings
 # disable verbose logging
 K.tf.logging.set_verbosity(K.tf.logging.ERROR)
 
+class TestCallback(Callback):
+    def __init__(self, train_data, test_data=None):
+        self.train_data = train_data
+        self.test_data = test_data
+
+    def on_epoch_end(self, epoch, logs={}):
+        test_loss = None
+        if self.test_data:
+            x, y = self.test_data
+            test_loss = self.model.evaluate(x, y, verbose=0)
+        x, y = self.train_data
+        train_loss = self.model.evaluate(x, y, verbose=0)
+        print('\nEpoch: {0}, Test: {1}, Train: {2}'.format(
+            epoch, test_loss, train_loss))
 
 class SeinfeldAI(object):
     """ Wrapper for building, training and testing a LSTM model
@@ -45,7 +60,7 @@ class SeinfeldAI(object):
         # these cannot be present in the corpus
         self.end_q_seq = settings.END_Q_SEQ  # '|'
         self.end_a_seq = settings.END_A_SEQ  # '#'
-	self.debug = debug
+        self.debug = debug
         if self.debug:
             logmsg = 'lstm_size {0} epochs {1} batch_size {2} text_step {3} ' \
                 'learning_rate {4} window {5} dropout_W {6} U {7} ' \
@@ -225,13 +240,19 @@ class SeinfeldAI(object):
         optimizer = RMSprop(lr=self.learning_rate)
         self.model.compile(loss='categorical_crossentropy', optimizer=optimizer)
 
-    def train(self, X, y):
+    def train(self, X, y, test_X=None, test_y=None):
         """ Train our model for epochs, returning accuracy history
         """
+        if test_X is not None and test_y is not None:
+            cb = TestCallback((X, y), test_data=(test_X, test_y))
+        else:
+            cb = TestCallback((X, y))
+
         return self.model.fit(
             X, y,
             batch_size=self.batch_size,
-            nb_epoch=self.epochs)
+            nb_epoch=self.epochs,
+            callbacks=[cb])
 
     def sample(self, preds, temperature=1.0):
         """ Return softmax with "temperature" scores.
@@ -367,7 +388,7 @@ class SeinfeldAI(object):
         """
         val_X, val_y, ts_X, ts_y, tr_X, tr_y, = self.load_corpus(self.path)
         self.build_model()
-        history = self.train(tr_X, tr_y)
+        history = self.train(tr_X, tr_y, test_X=ts_X, test_y=ts_y)
         training_loss = history.history['loss'][-1]
         test_loss = self.test_model(ts_X, ts_y)
         if self.write_model:
@@ -391,4 +412,15 @@ def five_models(**kwargs):
 
 
 if __name__ == "__main__":
-    five_models()
+    okay_args = {
+        'epochs': 50.0,
+        'window': 30.0,
+        'dropout_U': 0.38955762412654765,
+        'dropout_W': 0.4591010611323188,
+        'path': 'seinfeld_lstm_corpus.jerry.txt',
+        'learning_rate': 0.0025225033685316377,
+        'lstm_size': 534.0 * 2,
+        'character': 'jerry',
+        'batch_size': 20
+    }
+    five_models(**okay_args)

@@ -19,11 +19,11 @@ from seinfeld_lstm import SeinfeldAI
 
 space = {
     'learning_rate': hp.loguniform('learning_rate', np.log(1e-5), np.log(0.5)),
-    'lstm_size': hp.quniform('lstm_size', 20, 700, 1),
+    'lstm_size': hp.quniform('lstm_size', 600, 2000, 1),
     'dropout_W': hp.uniform('dropout_W', 0.0, 0.9),
     'dropout_U': hp.uniform('dropout_U', 0.0, 0.9),
-    'window': hp.quniform('window', 1, 200, 1),
-    'epochs':  hp.quniform('epochs', 1, 10, 1)
+    'window': hp.quniform('window', 10, 80, 1),
+    'epochs':  hp.quniform('epochs', 10, 100, 1)
     # 'activation': hp.choice('activation', ['softmax', 'relu', 'tanh'])
 }
 
@@ -48,7 +48,8 @@ def main(character):
 
     def objective(args):
         args['character'] = character
-        args['path'] = 'seinfeld_lstm_corpus.{0}.txt'.format(character)
+        # args['path'] = 'seinfeld_lstm_corpus.{0}.txt'.format(character)
+        args['batch_size'] = 25
         try:
             model = SeinfeldAI(**args)
             tr_err = np.zeros(epochs)
