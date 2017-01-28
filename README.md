@@ -78,6 +78,14 @@ other make commands (below) as well:
 
     make CHARACTER=kramer
 
+## Examples
+
+
+Total 4 (delta 3), reused 0 (delta 0)                                                                                                (seinfeld)brando@OSX:~/seinfeld$ echo hey jerry \
+              | ./output.py models/model_1483862114.h5 jerry 0.3 \
+              2> /dev/null
+          yeah i was something. i don't know he look like the car with the time.
+
 ## Commands
 
 The makefile contains the following commands:

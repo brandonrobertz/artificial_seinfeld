@@ -3,11 +3,16 @@
 Source: https://github.com/colinpollock/seinfeld-scripts
 """
 from __future__ import print_function
+import lxml.html
 import re
 import argparse
 
 end_q_sequence = '|'
 end_a_sequence = '#'
+
+# this is responsible for cleaning the scripts
+strip = "\.\.\.|\.\.|\s'|'\s|\"|\(.*[\)\'\:]|\n|\r|\d|\*.*\*|" + \
+    "[^A-Za-z\'\.\?\! ]"
 
 
 def unescape(s):
@@ -65,7 +70,7 @@ def parse_script(html):
         yield (speaker, unescape(utterance_text))
 
 
-def scrape_episode(html):
+def scrape_transcript(html):
     html = html.replace('&nbsp;', ' ')
     splitted = re.split(r'={30}.*', html)
     info_html = splitted[0]
@@ -76,6 +81,24 @@ def scrape_episode(html):
     return (info, utterances)
 
 
+def scrape_summary(filename):
+    tree = lxml.html.parse(open(filename))
+    path = tree.xpath("//*[text()='Summary']/../../../../div[3]/p/text()")
+    description = (' ').join(path)
+    title_raw = (' ').join(tree.xpath('/html/head/title/text()'))
+    title_lower = title_raw.split('::')[-1].strip()
+    title = re.sub(strip, " ", title_lower)
+    return (title, description)
+
+
+def clean(data):
+    return re.sub(
+        "\s{2,}",
+        " ",
+        re.sub(strip, " ", data)
+    ).lower().strip()
+
+
 def args():
     desc = 'Take a raw SHTML Seinfeld transcript, downloaded using '\
         'download.py from seinology.com, and extract statement ' \
@@ -83,42 +106,58 @@ def args():
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument('script', type=str,
                         help='Seinology SHTML transcript file')
+    parser.add_argument('--mode', default='character',
+                        choices=['character','synopsis'],
+                        help='Mode to run scraper in. There are currently ' \
+                        'two modes: character and synopsis. Character mode ' \
+                        'extracts character response/answer pairs, for the ' \
+                        'purpose of training a character model. Synopsis ' \
+                        'mode extracts title/synopsis pairs, intended to ' \
+                        'be used to take a title (Seinfeld titles are ' \
+                        'typically nouns or specific actions) and generate ' \
+                        'a synopsis from it.')
     parser.add_argument('--character', default='jerry',
                         help='Seinfeld script character to pull responses ' \
-                        'or "all" for all character dialogue.')
+                        'or "all" for all character dialogue. Character mode ' \
+                        'only.')
     args = parser.parse_args()
-    return args.script, args.character
+    return args.script, args.character, args.mode
 
-
-# this is responsible for cleaning the scripts
-strip = "\.\.\.|\.\.|\s'|'\s|\"|\(.*[\)\'\:]|\n|\r|\d|\*.*\*|" + \
-    "[^A-Za-z\'\.\?\! ]"
 
 if __name__ == "__main__":
-    path, character = args()
-    file = open(path)
-    info, utterances = scrape_episode(file.read())
-    last_line = None
-    for utterance in utterances:
-        speaker = utterance[0].lower().strip()
-        line = re.sub(
-            "\s{2,}",
-            " ",
-            re.sub(strip, " ", utterance[1])
-        ).lower().strip()
-        if last_line is None:
+    path, character, mode = args()
+    if mode == 'character':
+        file = open(path)
+        info, utterances = scrape_transcript(file.read())
+        last_line = None
+        for utterance in utterances:
+            speaker = utterance[0].lower().strip()
+            line = clean(utterance[1])
+            if last_line is None:
+                last_line = line
+                continue
+            if character == "all" or speaker == character \
+                    and len(line) < 150 \
+                    and len(line) > 15 \
+                    and len(last_line) < 150 \
+                    and len(last_line) > 15:
+                print("{0}{1}{2}{3}".format(
+                    last_line.lower(),
+                    end_q_sequence,
+                    line.lower(),
+                    end_a_sequence
+                ))
             last_line = line
-            continue
-        if character == "all" or speaker == character \
-                and len(line) < 150 \
-                and len(line) > 15 \
-                and len(last_line) < 150 \
-                and len(last_line) > 15:
-            print("{0}{1}{2}{3}".format(
-                last_line.lower(),
-                end_q_sequence,
-                line.lower(),
-                end_a_sequence
-            ))
-        last_line = line
-    file.close()
+        file.close()
+    elif mode == 'synopsis':
+        print( "Using file", path)
+        title, synopsis = scrape_summary(path)
+        title = clean(title)
+        synopsis = clean(synopsis)
+        print("{0}{1}{2}{3}".format(
+            title,
+            end_q_sequence,
+            synopsis,
+            end_a_sequence
+        ))
+

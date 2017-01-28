@@ -33,15 +33,35 @@ EPISODE_NUMBERS = (
     ['179and180']
 )
 
-URL = 'http://www.seinology.com/scripts/script-%s.shtml'
+SCRIPT_URL = 'http://www.seinology.com/scripts/script-%s.shtml'
+SUMMARY_URL = 'http://www.seinology.com/epguide/%s.shtml'
+
+# how many times to retry downloading in case of temporary network/server issue
+RETRIES = 3
 
 
-def get_script_html(episode_number):
+def get_html(episode_number, summary=False):
+    URL = SCRIPT_URL if not summary else SUMMARY_URL
     url = URL % episode_number
-    resp = requests.get(url)
-    resp.raise_for_status()
-
-    return resp.text
+    print "Fetching", url
+    tries = 0
+    while True:
+        try:
+            resp = requests.get(url)
+            if resp.status_code == 404:
+                print("Got 404, skipping")
+                return None
+            resp.raise_for_status()
+        except Exception as e:
+            print("Error: {0}".format(e))
+            if tries < RETRIES:
+                print("Retrying {0} more times ...". format(RETRIES - tries))
+                tries += 1
+                continue
+            else:
+                print("Max retries. Skipping.")
+                return None
+        return resp.text
 
 
 def main(args):
@@ -52,24 +72,26 @@ def main(args):
 
     num_episodes = len(episode_numbers)
     for idx, episode_number in enumerate(episode_numbers, start=1):
+        print "Downloading EP", episode_number
         print >> sys.stderr, '[Ep. %s]\t\t%d of %d (%.2f%%)' % (
             episode_number, idx,
             len(episode_numbers),
             idx / num_episodes * 100
         )
 
-        out_path = os.path.join(
+        script_out_path = os.path.join(
             args.output_directory,
             '%s.shtml' % episode_number
         )
 
-        if args.no_overwrite is True and os.path.exists(out_path):
+        if args.no_overwrite is True and os.path.exists(script_out_path):
             continue
 
-        script_html = get_script_html(episode_number)
+        html = get_html(episode_number, summary=bool(args.summary))
 
-        with open(out_path, 'w') as fh:
-            print >> fh, script_html
+        if html is not None:
+            with open(script_out_path, 'w') as fh:
+                print >> fh, html
 
         if idx != num_episodes:
             time.sleep(args.sleep_seconds)
@@ -89,6 +111,15 @@ if __name__ == '__main__':
         default=1.0,
         help=('The number of seconds to sleep between downloading each page. '
               'Defaults to 1 second.')
+    )
+
+    parser.add_argument(
+        '--summary',
+        action='store_true',
+        help=('Download script summaries instead of transscript. NOTE: You '
+              'may wish to store this in a new directory, as it will '
+              'ignore/overwrite any scripts in the given directory without '
+              'looking to see if it is a summary or transcript.')
     )
 
     parser.add_argument(

@@ -48,9 +48,10 @@ def main(character):
 
     def objective(args):
         args['character'] = character
-        # args['path'] = 'seinfeld_lstm_corpus.{0}.txt'.format(character)
-        args['batch_size'] = 25
+        args['path'] = 'seinfeld_lstm_corpus.{0}.txt'.format(character)
+        args['batch_size'] = 600
         try:
+            print('Running with args', args)
             model = SeinfeldAI(**args)
             tr_err = np.zeros(epochs)
             ts_err = np.zeros(epochs)
@@ -64,13 +65,14 @@ def main(character):
             return {'status': STATUS_FAIL}
         return {'loss': ts_err.mean(), 'status': STATUS_OK}
 
-    for i in range(100):
+    for i in range(300):
         best = fmin(
             objective,
             space=space,
             algo=tpe.suggest,
             max_evals=(i+1),
-            trials=trials)
+            trials=trials
+        )
         print()
         print()
         print(i, "Final trials is:",

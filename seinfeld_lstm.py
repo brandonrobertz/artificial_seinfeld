@@ -13,7 +13,10 @@ import time
 import settings
 
 # disable verbose logging
-K.tf.logging.set_verbosity(K.tf.logging.ERROR)
+try:
+    K.tf.logging.set_verbosity(K.tf.logging.ERROR)
+except AttributeError:
+    pass
 
 class TestCallback(Callback):
     def __init__(self, train_data, test_data=None):
@@ -243,16 +246,16 @@ class SeinfeldAI(object):
     def train(self, X, y, test_X=None, test_y=None):
         """ Train our model for epochs, returning accuracy history
         """
-        if test_X is not None and test_y is not None:
-            cb = TestCallback((X, y), test_data=(test_X, test_y))
-        else:
-            cb = TestCallback((X, y))
+        # if test_X is not None and test_y is not None:
+        #     cb = TestCallback((X, y), test_data=(test_X, test_y))
+        # else:
+        #     cb = TestCallback((X, y))
 
         return self.model.fit(
             X, y,
             batch_size=self.batch_size,
-            nb_epoch=self.epochs,
-            callbacks=[cb])
+            nb_epoch=self.epochs)
+            # callbacks=[cb])
 
     def sample(self, preds, temperature=1.0):
         """ Return softmax with "temperature" scores.
@@ -421,6 +424,6 @@ if __name__ == "__main__":
         'learning_rate': 0.0025225033685316377,
         'lstm_size': 534.0 * 2,
         'character': 'jerry',
-        'batch_size': 20
+        'batch_size': 2000
     }
     five_models(**okay_args)
