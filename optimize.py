@@ -8,6 +8,7 @@ import signal
 import sys
 import pickle
 import os
+import argparse
 
 import settings
 
@@ -83,6 +84,22 @@ def main(character, corpus):
         save_trials(character)
 
 
+def parse_args():
+    desc = 'Search for optimal hyperparams for a given corpus, saving ' \
+        'models as we go.'
+    parser = argparse.ArgumentParser(description=desc)
+    parser.add_argument('character', type=str,
+                        help='An identifier for the model.')
+    parser.add_argument('corpus', type=str,
+                        help='The path to the corpus to train on.')
+    parser.add_argument('--mongohost', type=str,
+                        help='Mongo DB hostname:port, for distributed search')
+    parser.add_argument('--mongodb', type=str,
+                        help='Mongo DB db name, for distributed search')
+    args = parser.parse_args()
+    return args
+
+
 def signal_handler(signal, frame):
     print()
     print()
@@ -93,28 +110,15 @@ def signal_handler(signal, frame):
 signal.signal(signal.SIGINT, signal_handler)
 
 if __name__ == '__main__':
-    argc = len(sys.argv)
-    #if argc > 4 or ((argc == 2) and sys.argv[1] == "-h"):
-    #    print("USAGE ./optimize.py CHARACTER CORPUS [mongo_host:port] [mogo_db]")
-    #    print("    CHARACTER - must be the name of a character with spoken")
-    #    print("      line in the source transcripts")
-    #    print("    mongo_host:port - host:port of mongo instance for parallel")
-    #    print("      searches. if omitted, optimize will run in standalone")
-    #    print("      search mode")
-    #    print("    mongo_db will default to seinfeld_db if blank")
-    #    sys.exit(1)
+    args = parse_args()
 
-    character = sys.argv[1]
-    corpus = sys.argv[2]
+    if args.mongohost and args.mongodb:
+        mongo_connect = 'mongo://{0}/{1}/jobs'.format(
+            args.mongohost, args.mongodb)
+        print("Using distributed search on mongo instance {0}".format(
+            mongo_connect))
+        trials = MongoTrials(mongo_connect)
+    else:
+        print("Using standalone (single-machine) search mode")
 
-    #if argc >= 3:
-    #    mongo_host = sys.argv[2]
-    #    mongo_db = sys.argv[3] if len(sys.argv) == 4 else 'seinfeld_db'
-    #    mongo_connect = 'mongo://{0}/{1}/jobs'.format(mongo_host, mongo_db)
-    #    print("Setting up distributed search on mongo instance {0}/{1}".format(
-    #        mongo_host, mongo_db))
-    #    trials = MongoTrials(mongo_connect)
-    #else:
-    #    print("Using standalone (single-machine) search mode")
-
-    main(character, corpus)
+    main(args.character, args.corpus)
