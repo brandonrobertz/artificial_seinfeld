@@ -150,7 +150,6 @@ if __name__ == "__main__":
             last_line = line
         file.close()
     elif mode == 'synopsis':
-        print( "Using file", path)
         title, synopsis = scrape_summary(path)
         title = clean(title)
         synopsis = clean(synopsis)
