@@ -1,7 +1,7 @@
 CHARACTER=jerry
 MONGOHOST=
 MONGODB=
-CORPUS=
+CORPUS=./seinfeld_lstm_corpus.jerry.txt
 
 default: install_deps scripts summaries corpus optimize
 

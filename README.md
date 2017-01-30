@@ -62,7 +62,8 @@ The overall theory here is that we could generate a full Seinfeld script by
 training a model for each character, then have the models feed off each other,
 and generate dialogue for scenes.
 
-## Getting Started
+
+## Getting Started - Character Models
 
 If you just want to train a Jerry LSTM model, you can simply use the `Makefile`
 to do so:
@@ -77,6 +78,26 @@ To change the character, append the character override. This works with any of t
 other make commands (below) as well:
 
     make CHARACTER=kramer
+
+
+### Synopsis Model
+
+Just having a question-answer for each character isn't enough. We need some form of
+structure and plotline. Luckily for us, Seinfeld episodes are typically named after
+an object, place, or short action that appears in the episode. We exploit this to
+build a synopsis-generation model that takes a short input and outputs a
+synopsis. To get started, use the following command to build the synposis corpus:
+
+    make summaries
+
+This will download all the "episode guides" from Seinology and will build a
+title/synopsis corpus in the same format as statement/response for character
+models.
+
+Once we have this built, we can train a synopsis model on it:
+
+    make optimize CHARACTER=synopsis CORPUS=./synopsis_corpus.txt
+
 
 ## Examples
 
@@ -102,6 +123,11 @@ The makefile contains the following commands:
                           MONGODB=seinfeld_job after make optimize
                           to enable distributed searches
     make clean .......... delete all models, scripts, corpus, etc
+
+
+By default these commands will use the Jerry corpus and will label the model 'jerry'.
+You can override corpus location by appending `CORPUS=/corpus/location.txt` to your
+`make` commands.
 
 # An Open Letter to Jerry Seinfeld
 
