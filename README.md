@@ -22,8 +22,10 @@ fringes of Fair Use Copyright Law.
 ## How it works
 
 The model operates on a simple principle: for each Seinfeld character in the
-transcript corpus, take their response(s) to any statement/question posed. The
-model input is the statement/question and we train on the character's response.
+transcript corpus, take their response(s) to any statement/question posed. Then
+we can orchestrate models from different characters, creating new scenes and episodes.
+
+The model input is a statement/comment/question and we train on the character's response.
 If we generalize this as a "question/answer" problem, we can encode each pair
 like so:
 
@@ -33,7 +35,9 @@ Our model is trained by seeding the network with the first chunk of the
 question. The `y` target is the next character. We continue to move this
 text-window forward, one character at a time, each time supplying the next,
 unforseen character as the target. We do this until we get to the
-end-of-response marker, `<a>`.
+end-of-response marker, `<a>`. (Note that `<a>` is an example and the actual
+implementation uses a single-character marker, which is removed from the corpus input
+in preprocessing.)
 
 To illustrate this, using the second question/answer pair, with a `WINDOW` of
 10 and a batch size of 1, our inputs to our model (`X` and `y`) would look like
@@ -56,11 +60,13 @@ corpus.
 The full corpus is split into three chunks: 30% validation, 60% training, 10%
 test. During hyperparameter optimization, we do a full model generation,
 training, and evaluation cycle five times, returning the average training and
-test loss. The optimizer looks to minimize our test loss.
+test loss. The optimizer looks to minimize our test, not train, loss to
+avoid overfitting. We also use dropout to break symmetry and improve model
+generalization.
 
 The overall theory here is that we could generate a full Seinfeld script by
-training a model for each character, then have the models feed off each other,
-and generate dialogue for scenes.
+training a model for each character, training a model to develop a synopsis and
+outline, and then gather the outputs into a series of scenes.
 
 
 ## Getting Started - Character Models
