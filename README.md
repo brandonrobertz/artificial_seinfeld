@@ -105,6 +105,27 @@ Once we have this built, we can train a synopsis model on it:
     make optimize CHARACTER=synopsis CORPUS=./synopsis_corpus.txt
 
 
+## Settings
+
+While the python scripts take command line arguments, it gets annoying keeping
+track of all the default params and specifying them everywhere. To make this
+easier, the default params, as well as some non-specified params, such as
+start/end sequences, are given in settings.py.
+
+
+## Output
+
+Once we have a trained model, in this example let's use our trained synopsis
+model, we can use the output command to generate outputs like so:
+
+    echo "the bottom feeder#" \
+    | ./output.py --character Synopsis --temp 0.7 ./models/model_synopsis_1.48.h5
+
+        Synopsis: george discovers that he hears to broke at the pired to him 
+        man be nemeves the break up with the one of cake he makes a job ex a 
+        steel to to frank the reest uncle from the sane takes to mivi seod of 
+        george meets discovers the real pronices.
+
 ## Examples
 
 
@@ -117,19 +138,21 @@ Total 4 (delta 3), reused 0 (delta 0)                                           
 
 The makefile contains the following commands:
 
-    make install_deps ... install python requirements
-    make scripts ........ download transcripts from seinology
-    make corpus ......... extract character corpus from transcripts
-                          you can change the default character, jerry,
-                          by specifying another:
-                              make corpus CHARACTER=kramer
-    make train .......... train LSTM model using default params
-    make optimize ....... perform optimal hyperparameter search
-                          this accepts MONGOHOST=localhost:1234 and
-                          MONGODB=seinfeld_job after make optimize
-                          to enable distributed searches
-    make clean .......... delete all models, scripts, corpus, etc
-
+    make install_deps ....... install python requirements
+    make download_scripts ... download transcripts from seinology
+    make character_corpus ... extract character corpus from transcripts
+        you can change the default character, jerry, by specifying another:
+        make corpus CHARACTER=kramer
+        character options: elaine, george, kramer, newman, jerry
+    make train .............. train LSTM model using default params
+    make optimize ........... perform optimal hyperparameter search
+        this accepts MONGOHOST=localhost:1234 and MONGODB=seinfeld_job after make
+        optimize to enable distributed searches. use CHARACTER and CORPUS
+        options to change character label and corpus location (optional)
+    make clean .............. delete all models, scripts, corpus, etc
+    make download_summaries .. download the episode summaries
+    make summary_corpus ...... compile summaries into a title/synopsis corpus for training
+    make summaries ........... wrapper for download + compile synopsis corpus
 
 By default these commands will use the Jerry corpus and will label the model 'jerry'.
 You can override corpus location by appending `CORPUS=/corpus/location.txt` to your

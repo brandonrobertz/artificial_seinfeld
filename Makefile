@@ -16,7 +16,7 @@ download_summaries:
 	mkdir -p summaries 2> /dev/null
 	./download.py --summary ./summaries/
 
-corpus:
+character_corpus:
 	find ./scripts/ -iname '*.shtml' -exec ./scrape.py --character ${CHARACTER} {} \; \
 			> ./seinfeld_lstm_corpus.${CHARACTER}.txt
 
@@ -36,9 +36,11 @@ clean:
 	find ./ -iname "*.pyc" -delete
 	rm -rf scripts
 	rm -rf summaries
-	rm seinfeld_lstm_corpus.txt
+	rm seinfeld_lstm_corpus.*.txt
+	rm synopsis_corpus.txt
 	rm *.p
 	rm *.h5
+	rm -rf models/*
 
 mongo:
 	./mongodb-linux-x86_64-3.4.1/bin/mongod --dbpath ./db/ --port 1234

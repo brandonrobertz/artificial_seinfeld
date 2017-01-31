@@ -11,6 +11,7 @@ from functools import reduce
 import cPickle as pickle
 import time
 import settings
+import re
 
 # disable verbose logging
 try:
@@ -270,8 +271,10 @@ class SeinfeldAI(object):
 
     def output_from_seed(self, sentence, max_chars=140, output_until=None,
                          temperature=settings.TEMPERATURE):
-        """ Take a seed sentence and generate some output from out LSTM. Output either max_chars
-        and (optionally) output until character is output (most likely you'll want to use end-of-answer sequence).
+        """ Take a seed sentence and generate some output from out LSTM.
+        Output either max_chars
+        and (optionally) output until character is output (most likely you'll
+        want to use end-of-answer sequence).
         """
         # check for & strip non self.chars characters
         raw_sentence = sentence.lower()
@@ -303,10 +306,22 @@ class SeinfeldAI(object):
 
         # store generated chars here, this is first output
         generated = pred_char
+        print(pred_char, end='')
 
-        for i in range(max_chars):
-            if output_until is not None and output_until in generated:
+        if not max_chars and not output_until:
+            sys.stderr.write('max_chars and/or output_until must be specified')
+            return
+
+        while True:
+            # max predicted chars check if > 0
+            if (len(generated) >= max_chars) and max_chars > 0:
                 break
+
+            # check for end-of-response (answer) marker
+            found = re.findall(output_until, generated)
+            if output_until is not None and len(found) > 0:
+                break
+
             blank = np.zeros(len(self.chars))
             last_X = np.reshape(X[-1], (1, self.window, len(self.chars)))
             trimmed_X = last_X[:, 1:]
@@ -316,8 +331,9 @@ class SeinfeldAI(object):
             pred_ix = self.sample(preds, temperature)
             pred_char = self.indices_char[pred_ix]
             generated += pred_char
+            print(pred_char, end='')
 
-        print(generated)
+        print()
 
     def save_model(self, prefix):
         """ Write model to disk
