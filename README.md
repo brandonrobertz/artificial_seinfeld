@@ -1,5 +1,7 @@
 # Artificial Seinfeld
 
+![Artificial Seinfeld](http://bxroberts.org/artificial_seinfeld.jpg)
+
 With new episodes of Seinfeld extremely unlikely, how can we combat the
 prospect of watching syndicated episodes for the rest of our lives? Sit
 quietly, watching all 180 episodes 'til death? I think not. If Seinfeld won't
