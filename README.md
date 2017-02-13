@@ -2,11 +2,14 @@
 
 ![Artificial Seinfeld](http://bxroberts.org/artificial_seinfeld.jpg)
 
+
 With new episodes of Seinfeld extremely unlikely, how can we combat the
 prospect of watching syndicated episodes for the rest of our lives? Sit
 quietly, watching all 180 episodes 'til death? I think not. If Seinfeld won't
 make new episodes, we'll have to do it ourselves -- but we'll definitely need
 some AI to do the actual writing. Nobody wants to do that much work.
+
+    Make AI General Again
 
 This repository is an exploration of this idea and contains some tools to:
 
