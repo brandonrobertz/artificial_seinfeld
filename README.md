@@ -9,8 +9,6 @@ quietly, watching all 180 episodes 'til death? I think not. If Seinfeld won't
 make new episodes, we'll have to do it ourselves -- but we'll definitely need
 some AI to do the actual writing. Nobody wants to do that much work.
 
-    Make Ai General Already
-
 This repository is an exploration of this idea and contains some tools to:
 
 1.  Scrape all Seinfeld episode transcripts (based on a fork of [seinfeld-scripts](https://github.com/colinpollock/seinfeld-scripts))
